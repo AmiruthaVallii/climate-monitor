@@ -15,3 +15,7 @@ terraform {
 provider "aws" {
   region = "eu-west-2"
 }
+
+resource "aws_s3_bucket" "test_workflow_bucket" {
+  bucket = "c18-climate-monitor-test-s3"
+}
