@@ -26,7 +26,7 @@ jobs:
    name: "Terraform Infrastructure Change Management"
    permissions: write-all
    runs-on: ubuntu-latest
-   env:
+   # env:  UNCOMMENT THIS TO ADD TERRAFORM VARIABLES
    # Terraform variables here. (define in variables.tf)
    # use format: TF_VAR_<variable name in variables.tf>: ${{ secrets.<github secrets variable name}}
    # e.g. TF_VAR_aws_access_key_id:  ${{ secrets.AWS_ACCESS_KEY_ID }}
