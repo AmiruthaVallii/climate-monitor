@@ -37,7 +37,7 @@ CREATE TABLE "locations"(
 );
 
 CREATE TABLE "location_assignment"(
-    "user_id" INTEGER GENERATED ALWAYS AS IDENTITY,
+    "user_id" INTEGER NOT NULL,
     "location_id" INTEGER NOT NULL,
     "subscribe_to_alerts" BOOLEAN NOT NULL,
     "subscribe_to_summary" BOOLEAN NOT NULL,
@@ -48,10 +48,10 @@ CREATE TABLE "location_assignment"(
 CREATE TABLE "flood_areas"(
     "flood_area_id" INTEGER GENERATED ALWAYS AS IDENTITY,
     "flood_area_code" INTEGER NOT NULL,
-    PRIMARY KEY (flood_area_id),
+    PRIMARY KEY (flood_area_id)
 );
 CREATE TABLE "flood_area_assignment"(
-    "location_id" INTEGER GENERATED ALWAYS AS IDENTITY,
+    "location_id" INTEGER NOT NULL,
     "flood_area_id" INTEGER NOT NULL,
     PRIMARY KEY (location_id),
     FOREIGN KEY (location_id) REFERENCES locations(location_id),
@@ -90,7 +90,7 @@ CREATE TABLE "flood_warnings"(
     "flood_area_id" INTEGER NOT NULL,
     "updated_at" TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "timestamp" TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL,
-    "severity_id" SMALLINT NOT NULL,
+    "severity_id" INTEGER NOT NULL,
     "description" TEXT NOT NULL,
     "notifications_sent" BOOLEAN NOT NULL,
     PRIMARY KEY (flood_warnings_id),
