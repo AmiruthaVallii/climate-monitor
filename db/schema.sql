@@ -1,16 +1,14 @@
-DROP TABLE IF EXISTS users;
-DROP TABLE IF EXISTS locations;
-DROP TABLE IF EXISTS location_assignment;
-DROP TABLE IF EXISTS flood_areas;
-DROP TABLE IF EXISTS readings;
-DROP TABLE IF EXISTS flood_warnings;
-DROP TABLE IF EXISTS flood_severity;
-DROP TABLE IF EXISTS historical_readings;
-DROP TABLE IF EXISTS historical_floods;
 DROP TABLE IF EXISTS future_prediction;
-
-
-
+DROP TABLE IF EXISTS historical_readings;
+DROP TABLE IF EXISTS readings;
+DROP TABLE IF EXISTS location_assignment;
+DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS flood_area_assignment;
+DROP TABLE IF EXISTS locations
+DROP TABLE IF EXISTS flood_warnings;
+DROP TABLE IF EXISTS historical_floods;
+DROP TABLE IF EXISTS flood_severity;
+DROP TABLE IF EXISTS flood_areas
 
 
 
@@ -37,23 +35,25 @@ CREATE TABLE "locations"(
 );
 
 CREATE TABLE "location_assignment"(
+    "location_assignment_id" INTEGER GENERATED ALWAYS AS IDENTITY,
     "user_id" INTEGER NOT NULL,
     "location_id" INTEGER NOT NULL,
     "subscribe_to_alerts" BOOLEAN NOT NULL,
     "subscribe_to_summary" BOOLEAN NOT NULL,
-    PRIMARY KEY (user_id),
+    PRIMARY KEY (location_assignment_id),
     FOREIGN KEY (user_id) REFERENCES users(user_id),
     FOREIGN KEY (location_id) REFERENCES locations(location_id)
 );
 CREATE TABLE "flood_areas"(
     "flood_area_id" INTEGER GENERATED ALWAYS AS IDENTITY,
-    "flood_area_code" INTEGER NOT NULL,
+    "flood_area_code" TEXT NOT NULL,
     PRIMARY KEY (flood_area_id)
 );
 CREATE TABLE "flood_area_assignment"(
+    "flood_area_assignment_id" INTEGER GENERATED ALWAYS AS IDENTITY,
     "location_id" INTEGER NOT NULL,
     "flood_area_id" INTEGER NOT NULL,
-    PRIMARY KEY (location_id),
+    PRIMARY KEY (flood_area_assignment_id),
     FOREIGN KEY (location_id) REFERENCES locations(location_id),
     FOREIGN KEY (flood_area_id) REFERENCES flood_areas(flood_area_id)
 );
