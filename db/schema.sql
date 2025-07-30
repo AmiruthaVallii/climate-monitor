@@ -31,8 +31,8 @@ CREATE TABLE users(
 CREATE TABLE "locations"(
     "location_id" INTEGER GENERATED ALWAYS AS IDENTITY,
     "location_name" TEXT NOT NULL,
-    "latitude" FLOAT(53) NOT NULL,
-    "longitude" FLOAT(53) NOT NULL,
+    "latitude" FLOAT NOT NULL,
+    "longitude" FLOAT NOT NULL,
     PRIMARY KEY (location_id)
 );
 
