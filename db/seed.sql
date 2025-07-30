@@ -19,4 +19,4 @@ INSERT INTO locations(location_name,latitude,longitude)
           ('Aberdeen',57.147480,-2.095400),
           ('Inverness',57.477772,-4.224721),
           ('Belfast',54.597286,-5.930120),
-          ('Derry',54.996613,-7.308575)
+          ('Derry',54.996613,-7.308575);
