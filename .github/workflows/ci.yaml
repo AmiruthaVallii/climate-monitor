@@ -1,0 +1,97 @@
+name: Test and Lint
+on:
+  push:
+    branches:
+    - 'main'
+  pull_request: 
+    branches:
+    - 'main'
+  workflow_dispatch:
+jobs:
+  test:
+    name: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4.2.2
+      - name: Set up Python
+        uses: actions/setup-python@v5.6.0
+        with:
+          python-version: '3.13'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip 
+      - name: Run tests
+        run: |
+          find . -type f -name 'test*.py' -exec dirname {} \; | sort -u | while read -r dir; do
+              echo "Processing directory: $dir"
+              echo "Making virtual environment..."
+              python -m venv .venv
+              echo "Activating virtual environment..."
+              source .venv/bin/activate
+              req_file="$dir/requirements.txt"
+              if [[ -f "$req_file" ]]; then
+                  echo "Found requirements.txt file in $dir"
+                  echo "Installing..."
+                  pip install -r "$req_file"
+              else
+                  echo "No requirements.txt file found in $dir"
+              fi 
+
+              echo "Installing pytest..."
+              pip install pytest
+              deactivate && source .venv/bin/activate
+              echo "Running pytest in $dir"
+              pytest "$dir"
+
+              echo "Deactivating virtual environment..."
+              deactivate
+              echo "Deleting virtual environment..."
+              rm -rf .venv
+
+              echo "Finished processing $dir"
+              echo "----------------------------------------"
+          done
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip 
+      - name: Run pylint
+        run: |
+          find . -type f -name '*.py' -exec dirname {} \; | sort -u | while read -r dir; do
+              echo "Processing directory: $dir"
+              echo "Making virtual environment..."
+              python -m venv .venv
+              echo "Activating virtual environment..."
+              source .venv/bin/activate
+              req_file="$dir/requirements.txt"
+              if [[ -f "$req_file" ]]; then
+                  echo "Found requirements.txt file in $dir"
+                  echo "Installing requirements..."
+                  pip install -r "$req_file"
+              else
+                  echo "No requirements.txt file found in $dir"
+              fi
+
+              echo "Installing pylint..."
+              pip install pylint
+              deactivate && source .venv/bin/activate
+              echo "Running pylint in $dir"
+              find "$dir" -type f -name "*.py" -and -not -name "test_*.py" -and -not -path "*.venv*" -prune -exec pylint {} --fail-under 8.5 \;
+
+              echo "Deactivating virtual environment..."
+              deactivate
+              echo "Deleting virtual environment..."
+              rm -rf .venv
+              echo "Finished processing $dir"
+              echo "----------------------------------------"
+          done
