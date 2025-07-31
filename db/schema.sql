@@ -4,18 +4,18 @@ DROP TABLE IF EXISTS readings;
 DROP TABLE IF EXISTS location_assignment;
 DROP TABLE IF EXISTS users;
 DROP TABLE IF EXISTS flood_area_assignment;
-DROP TABLE IF EXISTS locations
+DROP TABLE IF EXISTS locations;
 DROP TABLE IF EXISTS flood_warnings;
 DROP TABLE IF EXISTS historical_floods;
 DROP TABLE IF EXISTS flood_severity;
-DROP TABLE IF EXISTS flood_areas
+DROP TABLE IF EXISTS flood_areas;
 
 
 
 
 
 
-CREATE TABLE users(
+CREATE TABLE "users"(
     "user_id" INTEGER GENERATED ALWAYS AS IDENTITY,
     "first_name" TEXT NOT NULL,
     "last_name" TEXT NOT NULL,
