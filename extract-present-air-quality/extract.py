@@ -2,7 +2,6 @@
 import os
 from datetime import datetime, timezone
 from typing import Any
-import openmeteo_requests
 from retry_requests import retry
 from dotenv import load_dotenv
 import psycopg2
