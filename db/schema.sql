@@ -1,21 +1,23 @@
 DROP TABLE IF EXISTS future_prediction;
 DROP TABLE IF EXISTS historical_readings;
-DROP TABLE IF EXISTS readings;
+DROP TABLE IF EXISTS historical_air_quality;
+DROP TABLE IF EXISTS weather_readings;
+DROP TABLE IF EXISTS air_quality_readings;
 DROP TABLE IF EXISTS location_assignment;
 DROP TABLE IF EXISTS users;
 DROP TABLE IF EXISTS flood_area_assignment;
-DROP TABLE IF EXISTS locations
+DROP TABLE IF EXISTS locations;
 DROP TABLE IF EXISTS flood_warnings;
 DROP TABLE IF EXISTS historical_floods;
 DROP TABLE IF EXISTS flood_severity;
-DROP TABLE IF EXISTS flood_areas
+DROP TABLE IF EXISTS flood_areas;
 
 
 
 
 
 
-CREATE TABLE users(
+CREATE TABLE "users"(
     "user_id" INTEGER GENERATED ALWAYS AS IDENTITY,
     "first_name" TEXT NOT NULL,
     "last_name" TEXT NOT NULL,
@@ -59,23 +61,32 @@ CREATE TABLE "flood_area_assignment"(
 );
 
 
-CREATE TABLE "readings"(
-    "reading_id" INTEGER GENERATED ALWAYS AS IDENTITY,
+CREATE TABLE "weather_readings"(
+    "weather_reading_id" INTEGER GENERATED ALWAYS AS IDENTITY,
     "timestamp" TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL,
     "location_id" INTEGER NOT NULL,
     "rainfall_last_15_mins" FLOAT NOT NULL,
+    "current_temperature" FLOAT NOT NULL,
+    "wind_speed" FLOAT NOT NULL,
+    "wind_gust_speed" FLOAT NOT NULL,
+    "wind_direction" SMALLINT NOT NULL,
+    PRIMARY KEY (weather_reading_id),
+    FOREIGN KEY (location_id) REFERENCES locations(location_id)
+);
+CREATE TABLE "air_quality_readings"(
+    "air_quality_reading_id" INTEGER GENERATED ALWAYS AS IDENTITY,
+    "timestamp" TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL,
+    "location_id" INTEGER NOT NULL,
     "air_quality_index" SMALLINT NOT NULL,
     "carbon_monoxide" FLOAT NOT NULL,
+    "nitrogen_monoxide" FLOAT NOT NULL,
+    "ammonia" FLOAT NOT NULL,
     "nitrogen_dioxide" FLOAT NOT NULL,
     "ozone" FLOAT NOT NULL,
     "sulphur_dioxide" FLOAT NOT NULL,
     "pm2_5" FLOAT NOT NULL,
     "pm10" FLOAT NOT NULL,
-    "current_temperature" FLOAT NOT NULL,
-    "wind_speed" FLOAT NOT NULL,
-    "wind_gust_speed" FLOAT NOT NULL,
-    "wind_direction" SMALLINT NOT NULL,
-    PRIMARY KEY (reading_id),
+    PRIMARY KEY (air_quality_reading_id),
     FOREIGN KEY (location_id) REFERENCES locations(location_id)
 );
 CREATE TABLE "flood_severity"(
@@ -104,13 +115,6 @@ CREATE TABLE "historical_readings"(
     "date" DATE NOT NULL,
     "location_id" INTEGER NOT NULL,
     "total_rainfall" FLOAT NOT NULL,
-    "mean_air_quality_index" SMALLINT NULL,
-    "mean_carbon_monoxide" FLOAT NULL,
-    "mean_nitrogen_dioxide" FLOAT NULL,
-    "mean_ozone" FLOAT NULL,
-    "mean_sulphur_dioxide" FLOAT NULL,
-    "mean_pm2_5" FLOAT NULL,
-    "mean_pm10" FLOAT NULL,
     "mean_temperature" FLOAT NOT NULL,
     "max_temperature" FLOAT NOT NULL,
     "min_temperature" FLOAT NOT NULL,
@@ -120,6 +124,22 @@ CREATE TABLE "historical_readings"(
     PRIMARY KEY (historical_reading_id),
     FOREIGN KEY (location_id) REFERENCES locations(location_id)
 
+);
+CREATE TABLE "historical_air_quality"(
+    "historical_air_quality_id" INTEGER GENERATED ALWAYS AS IDENTITY,
+    "date" DATE NOT NULL,
+    "location_id" INTEGER NOT NULL,
+    "mean_air_quality_index" SMALLINT NULL,
+    "mean_carbon_monoxide" FLOAT NULL,
+    "mean_nitrogen_dioxide" FLOAT NULL,
+    "mean_nitrogen_monoxide" FLOAT NOT NULL,
+    "mean_ammonia" FLOAT NOT NULL,
+    "mean_ozone" FLOAT NULL,
+    "mean_sulphur_dioxide" FLOAT NULL,
+    "mean_pm2_5" FLOAT NULL,
+    "mean_pm10" FLOAT NULL,
+    PRIMARY KEY (historical_air_quality_id),
+    FOREIGN KEY (location_id) REFERENCES locations(location_id)
 );
 
 CREATE TABLE "historical_floods"(
