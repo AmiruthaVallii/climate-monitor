@@ -55,11 +55,10 @@ def get_air_quality(lat, lon):
     retry_session = retry(req.Session(), retries=5, backoff_factor=0.2)
     r = retry_session.get(
         url + f"?lat={lat}&lon={lon}&appid={os.getenv("api_key")}")
-    json = r.json()
+    raw_data = r.json()["list"][0]
     processed_data = {}
     processed_data["timestamp"] = datetime.fromtimestamp(
-        json['dt'], timezone.utc).isoformat()
-    raw_data = json["list"][0]
+        raw_data['dt'], timezone.utc).isoformat()
     processed_data["air_quality_index"] = raw_data['main']['aqi']
     processed_data["carbon_monoxide"] = raw_data['components']["co"]
     processed_data["nitrogen_dioxide"] = raw_data['components']["no2"]
@@ -90,8 +89,6 @@ def lambda_handler(event, context):  # pylint: disable=unused-argument
             lat, lon = cur.fetchone()
         weather_reading = get_weather(lat, lon)
         weather_reading["location_id"] = event["location_id"]
-        air_quality_reading = get_air_quality(lat, lon)
-        air_quality_reading["location_id"] = event["location_id"]
         with conn.cursor() as cur:
             cur.execute(
                 ("INSERT INTO weather_readings "
@@ -104,6 +101,9 @@ def lambda_handler(event, context):  # pylint: disable=unused-argument
                  "%(wind_gust_speed)s, %(wind_direction)s)"),
                 weather_reading)
             conn.commit()
+        air_quality_reading = get_air_quality(lat, lon)
+        air_quality_reading["location_id"] = event["location_id"]
+        with conn.cursor() as cur:
             cur.execute(
                 ("INSERT INTO air_quality_readings "
                  "(timestamp, location_id, air_quality_index,"
