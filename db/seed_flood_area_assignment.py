@@ -28,8 +28,29 @@ def get_location_ids_lat_long(config_values):
     return df
 
 
-def find_list_of_flood_area_codes_for_location():
-    pass
+def get_flood_area_codes(lat, lon):
+    ENDPOINT = f'https://environment.data.gov.uk/flood-monitoring/id/floodAreas?lat={lat}&long={lon}&dist=5'
+    try:
+        response = requests.get(ENDPOINT)
+        response = response.json()
+        areas = response['items']
+        flood_area_codes = []
+        for area in areas:
+            flood_area_codes.append(area['fwdCode'])
+        return flood_area_codes
+    except requests.exceptions.RequestException:
+        print('failed to reach endpoint')
+
+
+def find_list_of_flood_area_codes_for_location(df):
+    codes = []
+    for index, row in df.itterrows():
+        lat, lon = row['latitude'], row['longitude']
+        area_codes = get_flood_area_codes(lat, lon)
+        codes.append(area_codes)
+
+    df['flood_area_codes'] = codes
+    return df
 
 
 def match_flood_area_codes_to_flood_area_id():
