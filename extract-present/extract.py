@@ -55,8 +55,11 @@ def get_air_quality(lat, lon):
     retry_session = retry(req.Session(), retries=5, backoff_factor=0.2)
     r = retry_session.get(
         url + f"?lat={lat}&lon={lon}&appid={os.getenv("api_key")}")
-    raw_data = r.json()["list"][0]
+    json = r.json()
     processed_data = {}
+    processed_data["timestamp"] = datetime.fromtimestamp(
+        json['dt'], timezone.utc).isoformat()
+    raw_data = json["list"][0]
     processed_data["air_quality_index"] = raw_data['main']['aqi']
     processed_data["carbon_monoxide"] = raw_data['components']["co"]
     processed_data["nitrogen_dioxide"] = raw_data['components']["no2"]
@@ -64,6 +67,8 @@ def get_air_quality(lat, lon):
     processed_data["sulphur_dioxide"] = raw_data['components']["so2"]
     processed_data["pm2_5"] = raw_data['components']["pm2_5"]
     processed_data["pm10"] = raw_data['components']["pm10"]
+    processed_data["nitrogen_monoxide"] = raw_data['components']["no"]
+    processed_data["ammonia"] = raw_data['components']["nh3"]
     return processed_data
 
 
@@ -83,23 +88,35 @@ def lambda_handler(event, context):  # pylint: disable=unused-argument
                 "SELECT latitude, longitude FROM locations WHERE location_id = %s",
                 (event["location_id"],))
             lat, lon = cur.fetchone()
-        open_meteo_reading = get_weather(lat, lon)
+        weather_reading = get_weather(lat, lon)
+        weather_reading["location_id"] = event["location_id"]
         air_quality_reading = get_air_quality(lat, lon)
-        data = open_meteo_reading | air_quality_reading
-        data["location_id"] = event["location_id"]
+        air_quality_reading["location_id"] = event["location_id"]
         with conn.cursor() as cur:
             cur.execute(
-                ("INSERT INTO readings "
-                 "(timestamp, location_id, rainfall_last_15_mins, air_quality_index,"
-                 "carbon_monoxide, nitrogen_dioxide, ozone, sulphur_dioxide, "
-                 "pm2_5, pm10, current_temperature, wind_speed, "
+                ("INSERT INTO weather_readings "
+                 "(timestamp, location_id, rainfall_last_15_mins, "
+                 "current_temperature, wind_speed, "
                  "wind_gust_speed, wind_direction) "
                  "VALUES "
                  "(%(timestamp)s, %(location_id)s, %(rainfall_last_15_mins)s, "
-                 "%(air_quality_index)s, %(carbon_monoxide)s, "
+                 "%(current_temperature)s, %(wind_speed)s, "
+                 "%(wind_gust_speed)s, %(wind_direction)s)"),
+                weather_reading)
+            conn.commit()
+            cur.execute(
+                ("INSERT INTO air_quality_readings "
+                 "(timestamp, location_id, air_quality_index,"
+                 "carbon_monoxide, nitrogen_monoxide, ammonia, "
+                 "nitrogen_dioxide, ozone, sulphur_dioxide, "
+                 "pm2_5, pm10) "
+                 "VALUES "
+                 "(%(timestamp)s, %(location_id)s, %(air_quality_index)s,"
+                 "%(carbon_monoxide)s, %(nitrogen_monoxide)s, %(ammonia)s, "
                  "%(nitrogen_dioxide)s, %(ozone)s, %(sulphur_dioxide)s, "
-                 "%(pm2_5)s, %(pm10)s, %(current_temperature)s, %(wind_speed)s, "
-                 "%(wind_gust_speed)s, %(wind_direction)s) "), data)
+                 "%(pm2_5)s, %(pm10)s)"),
+                air_quality_reading
+            )
             conn.commit()
     finally:
         conn.close()
