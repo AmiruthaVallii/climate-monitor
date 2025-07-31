@@ -3,3 +3,4 @@ psycopg2-binary
 dotenv
 pandas
 pytest
+requests_mock
