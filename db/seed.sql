@@ -6,7 +6,8 @@ INSERT INTO flood_severity (severity_level,severity_name, severity_meaning)
 
 
 INSERT INTO locations(location_name,latitude,longitude)
-    VALUES('London',51.507351,-0.127758),
+    VALUES
+    ('London',51.507351,-0.127758),
           ('Plymouth',50.371842,-4.183685),
           ('Birmingham',52.482899,-1.893460),
           ('Cardiff',51.481583,-3.179090),
