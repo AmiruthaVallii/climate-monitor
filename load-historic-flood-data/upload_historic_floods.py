@@ -1,3 +1,4 @@
+"""This script extracts, transforms and uploads historic flood data from a .ods file to a Postgres database."""
 import os
 import logging
 import pandas as pd
