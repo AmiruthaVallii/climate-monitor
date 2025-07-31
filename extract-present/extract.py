@@ -35,18 +35,18 @@ def get_weather(latitude: float, longitude: float) -> dict:
         "current": ["temperature_2m", "wind_speed_10m", "wind_direction_10m",
                     "wind_gusts_10m", "rain"],
     }
-    responses = openmeteo.weather_api(url, params=params)
-    response = responses[0]
+    api_responses = openmeteo.weather_api(url, params=params)
+    api_response = api_responses[0]
     # Process current data. The order of variables needs to be the same as requested.
-    current = response.Current()
+    current_weather = api_response.Current()
     data = {}
-    data["current_temperature"] = current.Variables(0).Value()
-    data["wind_speed"] = current.Variables(1).Value()
-    data["wind_direction"] = current.Variables(2).Value()
-    data["wind_gust_speed"] = current.Variables(3).Value()
-    data["rainfall_last_15_mins"] = current.Variables(4).Value()
+    data["current_temperature"] = current_weather.Variables(0).Value()
+    data["wind_speed"] = current_weather.Variables(1).Value()
+    data["wind_direction"] = current_weather.Variables(2).Value()
+    data["wind_gust_speed"] = current_weather.Variables(3).Value()
+    data["rainfall_last_15_mins"] = current_weather.Variables(4).Value()
     data["timestamp"] = datetime.fromtimestamp(
-        current.Time(), timezone.utc).isoformat()
+        current_weather.Time(), timezone.utc).isoformat()
     return data
 
 
