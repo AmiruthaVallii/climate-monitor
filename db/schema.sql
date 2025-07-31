@@ -1,5 +1,5 @@
-DROP TABLE IF EXISTS future_prediction;
-DROP TABLE IF EXISTS historical_readings;
+DROP TABLE IF EXISTS future_weather_prediction;
+DROP TABLE IF EXISTS historical_weather_readings;
 DROP TABLE IF EXISTS historical_air_quality;
 DROP TABLE IF EXISTS weather_readings;
 DROP TABLE IF EXISTS air_quality_readings;
