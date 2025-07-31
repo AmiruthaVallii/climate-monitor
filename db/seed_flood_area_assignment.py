@@ -1,9 +1,10 @@
+"""seeds the flood_area_assignment table with location_ids and their corresponding flood_area_ids"""
+
 import requests
 from psycopg2 import connect
 from psycopg2.extras import RealDictCursor, execute_values
 from dotenv import dotenv_values
 import pandas as pd
-ENDPOINT = 'https://environment.data.gov.uk/flood-monitoring/id/floodAreas?lat=y&long=x&dist=d'
 
 
 def get_connection(config_values):
@@ -18,20 +19,26 @@ def get_connection(config_values):
     return conn
 
 
-def get_location_ids_lat_long(config_values):
+def get_location_ids_lat_long(config_values) -> pd.DataFrame:
+    """Get's all the locations in the database"""
     conn = get_connection(config_values)
     cur = conn.cursor()
-    cur.execute('select location_id, latitude,longitude from locations;')
-    rows = cur.fetchall()
-    columns = [desc[0] for desc in cur.description]
-    df = pd.DataFrame(rows, columns=columns)
-    return df
-
-
-def get_flood_area_codes(lat, lon):
-    ENDPOINT = f'https://environment.data.gov.uk/flood-monitoring/id/floodAreas?lat={lat}&long={lon}&dist=25'
     try:
-        response = requests.get(ENDPOINT)
+        cur.execute('select location_id, latitude,longitude from locations;')
+        rows = cur.fetchall()
+        columns = [desc[0] for desc in cur.description]
+        df = pd.DataFrame(rows, columns=columns)
+        return df
+    finally:
+        cur.close()
+        conn.close()
+
+
+def get_flood_area_codes(lat: float, lon: float) -> list[str]:
+    """Get's the flood area codes for a given latitude and longitude"""
+    endpoint = f'https://environment.data.gov.uk/flood-monitoring/id/floodAreas?lat={lat}&long={lon}&dist=5'
+    try:
+        response = requests.get(endpoint)
         response = response.json()
         areas = response['items']
         flood_area_codes = []
@@ -42,7 +49,8 @@ def get_flood_area_codes(lat, lon):
         print('failed to reach endpoint')
 
 
-def find_list_of_flood_area_codes_for_location(df):
+def find_list_of_flood_area_codes_for_location(df: pd.DataFrame) -> pd.DataFrame:
+    """get's the flood area codes for each location in a dataframe"""
     codes = []
     for index, row in df.iterrows():
         lat, lon = row['latitude'], row['longitude']
@@ -53,16 +61,54 @@ def find_list_of_flood_area_codes_for_location(df):
     return df
 
 
-def match_flood_area_codes_to_flood_area_id():
-    pass
+def get_flood_area(config_values) -> dict:
+    """returns a dictionary of flood area codes to their id"""
+    conn = get_connection(config_values)
+    cur = conn.cursor()
+    try:
+        cur.execute('select flood_area_code,flood_area_id from flood_areas;')
+        results = cur.fetchall()
+        results_dict = {result['flood_area_code']                        : result["flood_area_id"] for result in results}
+        return results_dict
+    finally:
+        cur.close()
+        conn.close()
 
 
-def insert_into_flood_assignment():
-    pass
+def match_flood_area_codes_to_flood_area_id(df: pd.DataFrame, mapping_dict: dict) -> pd.DataFrame:
+    """finds the flood_area_ids in our database and maps 
+    them to the flood_area_codes in the dataframe """
+
+    df['flood_area_codes_ids'] = df['flood_area_codes'].apply(
+        lambda x: [mapping_dict.get(val, val) for val in x])
+    df = df.explode('flood_area_codes_ids')
+    df = df.dropna(subset=['flood_area_codes_ids'])
+    df = df.drop('latitude', axis=1)
+    df = df.drop('longitude', axis=1)
+    df = df.drop('flood_area_codes', axis=1)
+    return df
+
+
+def insert_into_flood_assignment(df, config_values):
+    """inserts location_id's and their flood_area_ids into the database"""
+    data = list(df.itertuples(index=False, name=None))
+    conn = get_connection(config_values)
+    cur = conn.cursor()
+    try:
+        query = 'INSERT INTO flood_area_assignment (location_id, flood_area_id) ' \
+                'VALUES %s'
+        execute_values(cur, query, data)
+        conn.commit()
+    finally:
+        cur.close()
+        conn.close()
 
 
 if __name__ == "__main__":
     config = dotenv_values()
-    df = get_location_ids_lat_long(config)
-    df = find_list_of_flood_area_codes_for_location(df)
-    print(df)
+    locations = get_location_ids_lat_long(config)
+    flood_codes_df = find_list_of_flood_area_codes_for_location(locations)
+    flood_area_dict = get_flood_area(config)
+    flood_ids_df = match_flood_area_codes_to_flood_area_id(
+        flood_codes_df, flood_area_dict)
+    insert_into_flood_assignment(flood_ids_df, config)

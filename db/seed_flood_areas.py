@@ -35,15 +35,17 @@ def insert_codes(config, code_list: list[str]) -> None:
     """inserts area codes into database"""
     conn = get_connection(config)
     cur = conn.cursor()
-    clear_query = "DELETE FROM flood_areas;"
-    cur.execute(clear_query)
-    cur.execute("SELECT SETVAL('flood_areas_flood_area_id_seq',1,false);")
-    query = 'INSERT INTO flood_areas (flood_area_code) ' \
-            'VALUES %s'
-    execute_values(cur, query, [(code,) for code in code_list])
-    conn.commit()
-    cur.close()
-    conn.close()
+    try:
+        clear_query = "DELETE FROM flood_areas;"
+        cur.execute(clear_query)
+        cur.execute("SELECT SETVAL('flood_areas_flood_area_id_seq',1,false);")
+        query = 'INSERT INTO flood_areas (flood_area_code) ' \
+                'VALUES %s'
+        execute_values(cur, query, [(code,) for code in code_list])
+        conn.commit()
+    finally:
+        cur.close()
+        conn.close()
 
 
 if __name__ == "__main__":
