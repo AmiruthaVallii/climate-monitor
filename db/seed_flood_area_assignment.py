@@ -29,7 +29,7 @@ def get_location_ids_lat_long(config_values):
 
 
 def get_flood_area_codes(lat, lon):
-    ENDPOINT = f'https://environment.data.gov.uk/flood-monitoring/id/floodAreas?lat={lat}&long={lon}&dist=5'
+    ENDPOINT = f'https://environment.data.gov.uk/flood-monitoring/id/floodAreas?lat={lat}&long={lon}&dist=25'
     try:
         response = requests.get(ENDPOINT)
         response = response.json()
@@ -44,7 +44,7 @@ def get_flood_area_codes(lat, lon):
 
 def find_list_of_flood_area_codes_for_location(df):
     codes = []
-    for index, row in df.itterrows():
+    for index, row in df.iterrows():
         lat, lon = row['latitude'], row['longitude']
         area_codes = get_flood_area_codes(lat, lon)
         codes.append(area_codes)
@@ -59,3 +59,10 @@ def match_flood_area_codes_to_flood_area_id():
 
 def insert_into_flood_assignment():
     pass
+
+
+if __name__ == "__main__":
+    config = dotenv_values()
+    df = get_location_ids_lat_long(config)
+    df = find_list_of_flood_area_codes_for_location(df)
+    print(df)
