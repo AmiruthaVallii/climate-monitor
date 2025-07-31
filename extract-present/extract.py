@@ -1,6 +1,7 @@
 """Lambda handler to extract and insert readings into the RDS."""
 import os
 from datetime import datetime, timezone
+from typing import Any
 import openmeteo_requests
 from retry_requests import retry
 from dotenv import load_dotenv
@@ -11,7 +12,7 @@ import requests as req
 load_dotenv()
 
 
-def get_connection():
+def get_connection() -> psycopg2.extensions.connection:
     """Get connection to RDS."""
     return psycopg2.connect(
         host=os.getenv("DB_HOST"),
@@ -22,15 +23,15 @@ def get_connection():
     )
 
 
-def get_weather(lat, lon):
+def get_weather(latitude: float, longitude: float) -> dict:
     """Get the current weather conditions from open-meteo.com"""
     session = req.Session()
     retry_session = retry(session, retries=5, backoff_factor=0.2)
     openmeteo = openmeteo_requests.Client(session=retry_session)
     url = "https://api.open-meteo.com/v1/forecast"
     params = {
-        "latitude": lat,
-        "longitude": lon,
+        "latitude": latitude,
+        "longitude": longitude,
         "current": ["temperature_2m", "wind_speed_10m", "wind_direction_10m",
                     "wind_gusts_10m", "rain"],
     }
@@ -49,12 +50,12 @@ def get_weather(lat, lon):
     return data
 
 
-def get_air_quality(lat, lon):
+def get_air_quality(latitude: float, longitude: float) -> dict:
     """Get air quality data from openweathermap.org."""
     url = "http://api.openweathermap.org/data/2.5/air_pollution"
     retry_session = retry(req.Session(), retries=5, backoff_factor=0.2)
     r = retry_session.get(
-        url + f"?lat={lat}&lon={lon}&appid={os.getenv("api_key")}")
+        url + f"?lat={latitude}&lon={longitude}&appid={os.getenv("api_key")}")
     raw_data = r.json()["list"][0]
     processed_data = {}
     processed_data["timestamp"] = datetime.fromtimestamp(
@@ -71,7 +72,7 @@ def get_air_quality(lat, lon):
     return processed_data
 
 
-def lambda_handler(event, context):  # pylint: disable=unused-argument
+def lambda_handler(event: dict, context: Any) -> dict:  # pylint: disable=unused-argument
     """
     Uploads current weather data for given location_id
     Parameters:
