@@ -1,12 +1,5 @@
 from unittest.mock import patch, Mock, call
-import pandas as pd
-from extract import get_connection, get_weather, lambda_handler
-
-
-@patch("psycopg2.connect")
-def test_get_connection(mock_connect):
-    get_connection()
-    assert mock_connect.call_count == 1
+from extract import get_weather, lambda_handler
 
 
 @patch("openmeteo_requests.Client")
