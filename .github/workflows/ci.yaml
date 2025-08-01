@@ -86,7 +86,7 @@ jobs:
               pip install pylint
               deactivate && source .venv/bin/activate
               echo "Running pylint in $dir"
-              find "$dir" -type f -name "*.py" -and -not -name "test_*.py" -and -not -path "*.venv*" -prune -exec pylint {} --fail-under 8.5 \;
+              find "$dir" -type f -name "*.py" -and -not -name "test_*.py" -and -not -path "*.venv*" -prune -exec pylint {} --fail-under 8.5 || exit 1 \;
 
               echo "Deactivating virtual environment..."
               deactivate
