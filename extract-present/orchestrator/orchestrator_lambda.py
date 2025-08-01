@@ -1,4 +1,5 @@
-""""
+"""
+A Python script to invoke the lambdas for extracting and inserting all live data
 """
 import os
 import logging
@@ -17,6 +18,9 @@ logging.basicConfig(level=logging.INFO,
 
 lambda_client = boto3.client("lambda")
 
+LIVE_WEATHER_LAMBDA = ""
+LIVE_AIR_QUALITY_LAMBDA = ""
+
 
 def get_connection() -> psycopg2.extensions.connection:
     """Get connection to RDS."""
@@ -30,6 +34,7 @@ def get_connection() -> psycopg2.extensions.connection:
 
 
 def get_location_data():
+    """Return all data from the location table in the RDS"""
     try:
         conn = get_connection()
         with conn.cursor() as cur:
@@ -41,7 +46,8 @@ def get_location_data():
     return location_data
 
 
-def lambda_handler(event: Any = None, context: Any = None):
+def lambda_handler(event: Any = None, context: Any = None):  # pylint: disable=unused-argument
+    """Lambda function to invoke the live weather and air quality lambdas for every location"""
     location_data = get_location_data()
 
     for location in location_data:
@@ -54,14 +60,23 @@ def lambda_handler(event: Any = None, context: Any = None):
 
         # Live weather data
         weather_response = lambda_client.invoke(
-            FunctionName="",
+            FunctionName=LIVE_WEATHER_LAMBDA,
             InvocationType="Event",
             Payload=json.dumps(payload)
         )
-        logging.info("plant_id %d status code: %d", plant_id,
-                     response['ResponseMetadata']['HTTPStatusCode'])
+        logging.info("Weather data for %s uploaded - Status code: %s", location[1],
+                     weather_response['ResponseMetadata']['HTTPStatusCode'])
 
         # Live air quality data
+        aq_response = lambda_client.invoke(
+            FunctionName=LIVE_AIR_QUALITY_LAMBDA,
+            InvocationType="Event",
+            Payload=json.dumps(payload)
+        )
+        logging.info("Air quality data for %s uploaded - Status code: %s", location[1],
+                     aq_response['ResponseMetadata']['HTTPStatusCode'])
+
+    logging.info("Successfully inserted all live data.")
 
 
 if __name__ == "__main__":
