@@ -23,6 +23,8 @@ logging.basicConfig(level=logging.INFO,
 
 HISTORIC_DATA_START_DATE = int(datetime(2020, 11, 27, 0, 0, 0).timestamp())
 
+API_ENDPOINT = "http://api.openweathermap.org/data/2.5/air_pollution/history"
+
 
 def get_connection() -> psycopg2.extensions.connection:
     """Get connection to RDS."""
@@ -40,12 +42,11 @@ def get_air_quality(location_id: int, lat: float, lon: float) -> list[tuple]:
     Make a request to the OpenWeather API and retrieve the historic air pollution data.
     Return the data as a list of tuples.
     """
-    url = "http://api.openweathermap.org/data/2.5/air_pollution/history"
     retry_session = retry(req.Session(),
                           retries=6,
                           backoff_factor=random.uniform(1, 3))
     api_response = retry_session.get(
-        url + (
+        API_ENDPOINT + (
             f"?lat={lat}&lon={lon}"
             f"&start={HISTORIC_DATA_START_DATE}&end={int(datetime.now().timestamp())}"
             f"&appid={os.getenv("api_key")}"
