@@ -44,19 +44,8 @@ def get_air_quality(latitude: float, longitude: float) -> dict:
     return processed_data
 
 
-def lambda_handler(event: dict, context: Any) -> dict:  # pylint: disable=unused-argument
-    """
-    Uploads current air quality data for given location_id
-    Parameters:
-        event: Dict containing the location_id
-               e.g. {"location_id": 1, "latitude": 51.507351, "longitude": -0.127758}
-        context: Lambda runtime context
-    Returns:
-        Dict containing status message
-    """
-    air_quality_reading = get_air_quality(
-        event["latitude"], event["longitude"])
-    air_quality_reading["location_id"] = event["location_id"]
+def insert_reading(reading: dict) -> None:
+    """Insert reading into RDS."""
     conn = get_connection()
     try:
         with conn.cursor() as cur:
@@ -71,11 +60,33 @@ def lambda_handler(event: dict, context: Any) -> dict:  # pylint: disable=unused
                  "%(carbon_monoxide)s, %(nitrogen_monoxide)s, %(ammonia)s, "
                  "%(nitrogen_dioxide)s, %(ozone)s, %(sulphur_dioxide)s, "
                  "%(pm2_5)s, %(pm10)s)"),
-                air_quality_reading
+                reading
             )
             conn.commit()
     finally:
         conn.close()
+
+
+def lambda_handler(event: dict, context: Any) -> dict:  # pylint: disable=unused-argument
+    """
+    Uploads current air quality data for given location_id
+    Parameters:
+        event: Dict containing the location_id
+               e.g. {"location_id": 1, "latitude": 51.507351, "longitude": -0.127758}
+        context: Lambda runtime context
+    Returns:
+        Dict containing status message
+    """
+    try:
+        air_quality_reading = get_air_quality(
+            event["latitude"], event["longitude"])
+        air_quality_reading["location_id"] = event["location_id"]
+        insert_reading(air_quality_reading)
+    except Exception as e:
+        return {
+            "statusCode": 500,
+            "message": str(e)
+        }
     return {
         "statusCode": 200,
         "message": "Reading successfully inserted."
