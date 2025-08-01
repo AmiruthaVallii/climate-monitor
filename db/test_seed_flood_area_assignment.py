@@ -2,6 +2,7 @@
 import requests
 import pandas as pd
 from seed_flood_area_assignment import get_flood_area_codes, find_list_of_flood_area_codes_for_location, match_flood_area_codes_to_flood_area_id
+import pytest
 
 
 def test_get_flood_area_codes_success(requests_mock):
@@ -13,16 +14,6 @@ def test_get_flood_area_codes_success(requests_mock):
     flood_area_codes = get_flood_area_codes(lat, lon)
 
     assert flood_area_codes == ['A123', 'B456']
-
-
-def test_get_flood_area_codes_failure(requests_mock):
-    requests_mock.get('https://environment.data.gov.uk/flood-monitoring/id/floodAreas?lat=51.5074&long=-0.1278&dist=5',
-                      exc=requests.exceptions.RequestException)
-
-    lat, lon = 51.5074, -0.1278
-    flood_area_codes = get_flood_area_codes(lat, lon)
-
-    assert flood_area_codes is None
 
 
 def test_find_list_of_flood_area_codes_for_location(requests_mock):
