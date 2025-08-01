@@ -1,0 +1,68 @@
+""""
+"""
+import os
+import logging
+from typing import Any
+import json
+
+from dotenv import load_dotenv
+import boto3
+import psycopg2
+
+
+load_dotenv()
+
+logging.basicConfig(level=logging.INFO,
+                    format='%(levelname)s: %(message)s')
+
+lambda_client = boto3.client("lambda")
+
+
+def get_connection() -> psycopg2.extensions.connection:
+    """Get connection to RDS."""
+    return psycopg2.connect(
+        host=os.getenv("DB_HOST"),
+        user=os.getenv("DB_USER"),
+        password=os.getenv("DB_PASSWORD"),
+        dbname=os.getenv("DB_NAME"),
+        port=os.getenv("DB_PORT")
+    )
+
+
+def get_location_data():
+    try:
+        conn = get_connection()
+        with conn.cursor() as cur:
+            cur.execute("SELECT * FROM locations")
+            location_data = cur.fetchall()
+        logging.info("Location data retrieved from RDS")
+    finally:
+        conn.close()
+    return location_data
+
+
+def lambda_handler(event: Any = None, context: Any = None):
+    location_data = get_location_data()
+
+    for location in location_data:
+
+        payload = {
+            "location_id": location[0],
+            "latitude": location[2],
+            "longitude": location[3]
+        }
+
+        # Live weather data
+        weather_response = lambda_client.invoke(
+            FunctionName="",
+            InvocationType="Event",
+            Payload=json.dumps(payload)
+        )
+        logging.info("plant_id %d status code: %d", plant_id,
+                     response['ResponseMetadata']['HTTPStatusCode'])
+
+        # Live air quality data
+
+
+if __name__ == "__main__":
+    lambda_handler()
