@@ -1,6 +1,7 @@
-from seed_flood_area_assignment import get_flood_area_codes, RADIUS, get_flood_area, match_flood_area_codes_to_flood_area_id, insert_into_flood_assignment
-import pandas as pd
+"""Lambda function to assign new locations their flood ids"""
 from dotenv import dotenv_values
+import pandas as pd
+from seed_flood_area_assignment import get_flood_area_codes, get_flood_area, match_flood_area_codes_to_flood_area_id, insert_into_flood_assignment
 
 
 def lambda_handler(event: dict, context) -> dict:  # pylint: disable=unused-argument
