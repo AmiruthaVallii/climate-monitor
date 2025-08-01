@@ -117,19 +117,21 @@ def insert_flood_data(records):
         logging.info("Inserted %d new flood warnings.", len(records))
 
 
-if __name__ == "__main__":
+def lambda_handler(event=None, context=None):
 
     config_logger()
 
-    logging.info("Checking flood monitoring API...")
+    logging.info("Starting live flood monitoring Lambda...")
 
     try:
         api_response = fetch_flood_data()
 
         with get_conn() as connection:
             severity_map, flood_area_map = get_mappings(connection)
+
             logging.info("Fetching existing flood warnings in RDS...")
             existing_records = fetch_existing_warnings(connection)
+
             new_flood_records = transform_data(
                 api_response, severity_map, flood_area_map, existing_records)
 
@@ -139,5 +141,18 @@ if __name__ == "__main__":
                 insert_flood_data(new_flood_records)
                 logging.info("Flood warnings upload complete.")
 
+        return {
+            "statusCode": 200,
+            "body": f"{len(new_flood_records)} flood warnings uploaded."
+        }
+
     except Exception as e:
-        logging.error("Failed to ingest flood data: %s", e)
+        logging.error("Error in Lambda execution: %s", e)
+        return {
+            "statusCode": 500,
+            "body": f"Failed to upload flood warnings {e}"
+        }
+
+
+if __name__ == "__main__":
+    pass
