@@ -21,7 +21,7 @@ INSERT INTO locations(location_name,latitude,longitude)
           ('Inverness',57.477772,-4.224721),
           ('Belfast',54.597286,-5.930120),
           ('Derry',54.996613,-7.308575),
-          ('Norfolk',52.628101,1.299350),
+          ('Norwich',52.628101,1.299350),
           ('Oxford',51.752022,-1.257726),
           ('Bristol',51.454514,-2.587910),
           ('Sheffield',53.381130,-1.470085),
