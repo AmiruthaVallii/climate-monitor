@@ -51,20 +51,10 @@ def get_weather(latitude: float, longitude: float) -> dict:
     return data
 
 
-def lambda_handler(event: dict, context: Any) -> dict:  # pylint: disable=unused-argument
-    """
-    Uploads current weather data for given location_id
-    Parameters:
-        event: Dict containing the location_id 
-               e.g. {"location_id": 1, "latitude": 51.507351, "longitude": -0.127758}
-        context: Lambda runtime context
-    Returns:
-        Dict containing status message
-    """
-    weather_reading = get_weather(event["latitude"], event["longitude"])
-    weather_reading["location_id"] = event["location_id"]
-    conn = get_connection()
+def insert_reading(reading: dict) -> None:
+    """Insert reading into the RDS."""
     try:
+        conn = get_connection()
         with conn.cursor() as cur:
             cur.execute(
                 ("INSERT INTO weather_readings "
@@ -77,10 +67,31 @@ def lambda_handler(event: dict, context: Any) -> dict:  # pylint: disable=unused
                  "%(current_temperature)s, %(wind_speed)s, "
                  "%(wind_gust_speed)s, %(wind_direction)s, "
                  "%(snowfall_last_15_mins)s)"),
-                weather_reading)
+                reading)
             conn.commit()
     finally:
         conn.close()
+
+
+def lambda_handler(event: dict, context: Any) -> dict:  # pylint: disable=unused-argument
+    """
+    Uploads current weather data for given location_id
+    Parameters:
+        event: Dict containing the location_id 
+               e.g. {"location_id": 1, "latitude": 51.507351, "longitude": -0.127758}
+        context: Lambda runtime context
+    Returns:
+        Dict containing status message
+    """
+    try:
+        weather_reading = get_weather(event["latitude"], event["longitude"])
+        weather_reading["location_id"] = event["location_id"]
+        insert_reading(weather_reading)
+    except Exception as e:
+        return {
+            "statusCode": 500,
+            "message": str(e)
+        }
     return {
         "statusCode": 200,
         "message": "Reading successfully inserted."
