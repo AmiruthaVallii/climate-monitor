@@ -5,6 +5,9 @@ from psycopg2 import connect
 from psycopg2.extras import RealDictCursor, execute_values
 from dotenv import dotenv_values
 import pandas as pd
+import logging
+
+RADIUS = 5
 
 
 def get_connection(config_values):
@@ -36,7 +39,7 @@ def get_location_ids_lat_long(config_values) -> pd.DataFrame:
 
 def get_flood_area_codes(lat: float, lon: float) -> list[str]:
     """Get's the flood area codes for a given latitude and longitude"""
-    endpoint = f'https://environment.data.gov.uk/flood-monitoring/id/floodAreas?lat={lat}&long={lon}&dist=5'
+    endpoint = f'https://environment.data.gov.uk/flood-monitoring/id/floodAreas?lat={lat}&long={lon}&dist={RADIUS}'
     try:
         response = requests.get(endpoint)
         response = response.json()
@@ -46,7 +49,8 @@ def get_flood_area_codes(lat: float, lon: float) -> list[str]:
             flood_area_codes.append(area['fwdCode'])
         return flood_area_codes
     except requests.exceptions.RequestException:
-        print('failed to reach endpoint')
+        logging.error("Endpoint request exception")
+        return {"error": "Request Exception"}
 
 
 def find_list_of_flood_area_codes_for_location(df: pd.DataFrame) -> pd.DataFrame:
@@ -68,7 +72,8 @@ def get_flood_area(config_values) -> dict:
     try:
         cur.execute('select flood_area_code,flood_area_id from flood_areas;')
         results = cur.fetchall()
-        results_dict = {result['flood_area_code']: result["flood_area_id"] for result in results}
+        results_dict = {result['flood_area_code']
+            : result["flood_area_id"] for result in results}
         return results_dict
     finally:
         cur.close()
@@ -80,7 +85,7 @@ def match_flood_area_codes_to_flood_area_id(df: pd.DataFrame, mapping_dict: dict
     them to the flood_area_codes in the dataframe """
 
     df['flood_area_codes_ids'] = df['flood_area_codes'].apply(
-        lambda x: [mapping_dict.get(val, val) for val in x])
+        lambda x: [mapping_dict.get(val) for val in x])
     df = df.explode('flood_area_codes_ids')
     df = df.dropna(subset=['flood_area_codes_ids'])
     df = df.drop('latitude', axis=1)

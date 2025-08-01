@@ -4,3 +4,4 @@ dotenv
 pandas
 pytest
 requests_mock
+logging

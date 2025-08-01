@@ -10,19 +10,19 @@ ENDPOINT = 'https://environment.data.gov.uk/flood-monitoring/id/floodAreas?_limi
 
 def get_connection(config_values):
     """connects to db"""
-    conn = connect(user=config_values['USER'],
+    return connect(user=config_values['USER'],
                    password=config_values['DBPASSWORD'],
                    dbname=config_values['DBNAME'],
                    port=config_values['PORT'],
                    host=config_values['HOST'],
                    sslmode="require",
                    cursor_factory=RealDictCursor)
-    return conn
 
 
 def get_codes() -> list[str]:
     """finds all flood area codes from endpoints"""
     response = requests.get(ENDPOINT)
+    response.raise_for_status()
     response = response.json()
     areas = response['items']
     flood_area_codes = []
