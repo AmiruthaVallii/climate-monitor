@@ -5,7 +5,7 @@ from psycopg2 import connect
 from psycopg2.extras import RealDictCursor, execute_values
 
 from dotenv import dotenv_values
-from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
+from tenacity import retry, stop_after_attempt, wait_random_exponential, retry_if_exception_type
 API_ENDPOINT = (
     "https://climate-api.open-meteo.com/v1/climate?"
     "latitude={lat}&longitude={lon}&start_date={start}&end_date={end}&"
