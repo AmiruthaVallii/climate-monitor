@@ -51,21 +51,22 @@ def test_lambda_handler(mock_connect, mock_get_weather):
     mock_get_weather.return_value = weather_reading
     mock_connect.return_value.cursor.return_value.__enter__.return_value = cursor
     cursor.fetchone.return_value = (53.5, 0.1)
-    ret = lambda_handler({"location_id": 123}, "context")
-    cursor.execute.assert_has_calls([call("SELECT latitude, longitude FROM locations WHERE location_id = %s", (123,)),
-                                     call(("INSERT INTO weather_readings "
-                                           "(timestamp, location_id, rainfall_last_15_mins, "
-                                           "current_temperature, wind_speed, "
-                                           "wind_gust_speed, wind_direction, "
-                                           "snowfall_last_15_mins) "
-                                           "VALUES "
-                                           "(%(timestamp)s, %(location_id)s, %(rainfall_last_15_mins)s, "
-                                           "%(current_temperature)s, %(wind_speed)s, "
-                                           "%(wind_gust_speed)s, %(wind_direction)s, "
-                                           "%(snowfall_last_15_mins)s)"),
-                                          weather_reading)
-                                     ])
-    assert cursor.execute.call_count == 2
+    ret = lambda_handler(
+        {"location_id": 123, "latitude": 53.5, "longitude": 0.1}, "context")
+    cursor.execute.assert_called_once_with(
+        ("INSERT INTO weather_readings "
+         "(timestamp, location_id, rainfall_last_15_mins, "
+         "current_temperature, wind_speed, "
+         "wind_gust_speed, wind_direction, "
+         "snowfall_last_15_mins) "
+         "VALUES "
+         "(%(timestamp)s, %(location_id)s, %(rainfall_last_15_mins)s, "
+         "%(current_temperature)s, %(wind_speed)s, "
+         "%(wind_gust_speed)s, %(wind_direction)s, "
+         "%(snowfall_last_15_mins)s)"),
+        weather_reading
+    )
+    assert cursor.execute.call_count == 1
     mock_get_weather.assert_called_once_with(53.5, 0.1)
     mock_connect.return_value.commit.assert_called_once()
     mock_connect.return_value.close.assert_called_once()
