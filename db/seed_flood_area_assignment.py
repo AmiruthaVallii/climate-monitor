@@ -68,7 +68,7 @@ def get_flood_area(config_values) -> dict:
     try:
         cur.execute('select flood_area_code,flood_area_id from flood_areas;')
         results = cur.fetchall()
-        results_dict = {result['flood_area_code']                        : result["flood_area_id"] for result in results}
+        results_dict = {result['flood_area_code']: result["flood_area_id"] for result in results}
         return results_dict
     finally:
         cur.close()
@@ -111,4 +111,5 @@ if __name__ == "__main__":
     flood_area_dict = get_flood_area(config)
     flood_ids_df = match_flood_area_codes_to_flood_area_id(
         flood_codes_df, flood_area_dict)
+    print(flood_ids_df)
     insert_into_flood_assignment(flood_ids_df, config)
