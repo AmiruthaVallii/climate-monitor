@@ -48,20 +48,17 @@ def lambda_handler(event: dict, context: Any) -> dict:  # pylint: disable=unused
     """
     Uploads current air quality data for given location_id
     Parameters:
-        event: Dict containing the location_id e.g. {"location_id": 1}
+        event: Dict containing the location_id
+               e.g. {"location_id": 1, "latitude": 51.507351, "longitude": -0.127758}
         context: Lambda runtime context
     Returns:
         Dict containing status message
     """
+    air_quality_reading = get_air_quality(
+        event["latitude"], event["longitude"])
+    air_quality_reading["location_id"] = event["location_id"]
+    conn = get_connection()
     try:
-        conn = get_connection()
-        with conn.cursor() as cur:
-            cur.execute(
-                "SELECT latitude, longitude FROM locations WHERE location_id = %s",
-                (event["location_id"],))
-            lat, lon = cur.fetchone()
-        air_quality_reading = get_air_quality(lat, lon)
-        air_quality_reading["location_id"] = event["location_id"]
         with conn.cursor() as cur:
             cur.execute(
                 ("INSERT INTO air_quality_readings "
@@ -86,5 +83,8 @@ def lambda_handler(event: dict, context: Any) -> dict:  # pylint: disable=unused
 
 
 if __name__ == "__main__":
-    out = lambda_handler({"location_id": 1}, 1)
+    out = lambda_handler(
+        {"location_id": 1, "latitude": 51.507351, "longitude": -0.127758},
+        "context"
+    )
     print(out)
