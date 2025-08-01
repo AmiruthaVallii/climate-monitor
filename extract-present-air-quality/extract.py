@@ -2,11 +2,14 @@
 import os
 from datetime import datetime, timezone
 from typing import Any
+import logging
 from retry_requests import retry
 from dotenv import load_dotenv
 import psycopg2
 import requests as req
 
+logging.basicConfig(
+    format="%(levelname)s | %(asctime)s | %(message)s", level=logging.INFO)
 
 load_dotenv()
 
@@ -28,6 +31,8 @@ def get_air_quality(latitude: float, longitude: float) -> dict:
     retry_session = retry(req.Session(), retries=5, backoff_factor=0.2)
     r = retry_session.get(
         url + f"?lat={latitude}&lon={longitude}&appid={os.getenv("api_key")}")
+    r.raise_for_status()
+    logging.info("Received air quality info from API.")
     raw_data = r.json()["list"][0]
     processed_data = {}
     processed_data["timestamp"] = datetime.fromtimestamp(
@@ -63,6 +68,8 @@ def insert_reading(reading: dict) -> None:
                 reading
             )
             conn.commit()
+            logging.info(
+                "Air quality readings successfully inserted into RDS.")
     finally:
         conn.close()
 
@@ -83,10 +90,12 @@ def lambda_handler(event: dict, context: Any) -> dict:  # pylint: disable=unused
         air_quality_reading["location_id"] = event["location_id"]
         insert_reading(air_quality_reading)
     except Exception as e:
-        return {
-            "statusCode": 500,
-            "message": str(e)
-        }
+        logging.error(
+            "Error processing location_id %s: %s",
+            event["location_id"],
+            str(e)
+        )
+        raise e
     return {
         "statusCode": 200,
         "message": "Reading successfully inserted."
