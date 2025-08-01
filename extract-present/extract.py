@@ -2,12 +2,15 @@
 import os
 from datetime import datetime, timezone
 from typing import Any
+import logging
 import openmeteo_requests
 from retry_requests import retry
 from dotenv import load_dotenv
 import psycopg2
 import requests as req
 
+logging.basicConfig(
+    format="%(levelname)s | %(asctime)s | %(message)s", level=logging.INFO)
 
 load_dotenv()
 
@@ -36,6 +39,7 @@ def get_weather(latitude: float, longitude: float) -> dict:
                     "wind_gusts_10m", "rain", "snowfall"],
     }
     api_responses = openmeteo.weather_api(url, params=params)
+    logging.info("Received weather reading from API.")
     api_response = api_responses[0]
     # Process current data. The order of variables needs to be the same as requested.
     current_weather = api_response.Current()
@@ -69,6 +73,7 @@ def insert_reading(reading: dict) -> None:
                  "%(snowfall_last_15_mins)s)"),
                 reading)
             conn.commit()
+            logging.info("Weather reading successfully inserted into RDS.")
     finally:
         conn.close()
 
@@ -88,10 +93,12 @@ def lambda_handler(event: dict, context: Any) -> dict:  # pylint: disable=unused
         weather_reading["location_id"] = event["location_id"]
         insert_reading(weather_reading)
     except Exception as e:
-        return {
-            "statusCode": 500,
-            "message": str(e)
-        }
+        logging.error(
+            "Error processing location_id %s: %s",
+            event["location_id"],
+            str(e)
+        )
+        raise e
     return {
         "statusCode": 200,
         "message": "Reading successfully inserted."
