@@ -40,7 +40,7 @@ def fetch_flood_data() -> list[dict]:
     return response.json().get("items", [])
 
 
-def get_mappings(conn):
+def get_mappings(conn) -> tuple[dict, dict]:
     """Fetches severity levels and flood areas."""
 
     with conn.cursor() as cur:
