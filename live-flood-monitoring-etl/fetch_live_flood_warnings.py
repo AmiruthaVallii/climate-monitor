@@ -140,4 +140,4 @@ if __name__ == "__main__":
                 logging.info("Flood warnings upload complete.")
 
     except Exception as e:
-        logging.error("Failed to ingest flood data: %d", e)
+        logging.error("Failed to ingest flood data: %s", e)
