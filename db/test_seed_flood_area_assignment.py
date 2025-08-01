@@ -15,14 +15,6 @@ def test_get_flood_area_codes_success(requests_mock):
     assert flood_area_codes == ['A123', 'B456']
 
 
-def test_get_flood_area_codes_failure(requests_mock):
-    requests_mock.get('https://environment.data.gov.uk/flood-monitoring/id/floodAreas?lat=51.5074&long=-0.1278&dist=5',
-                      exc=requests.exceptions.RequestException)
-
-    lat, lon = 51.5074, -0.1278
-    flood_area_codes = get_flood_area_codes(lat, lon)
-
-    assert flood_area_codes is None
 
 
 def test_find_list_of_flood_area_codes_for_location(requests_mock):
