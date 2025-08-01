@@ -84,14 +84,14 @@ jobs:
 
               echo "Installing pylint..."
               pip install pylint
-              deactivate && source .venv/bin/activate
+              
               echo "Running pylint in $dir"
-              find "$dir" -type f -name "*.py" -and -not -name "test_*.py" -and -not -path "*.venv*" -prune -exec pylint {} --fail-under 8.5 \;
+              find "$dir" -type f -name "*.py" -and -not -name "test_*.py" -and -not -name "conftest.py" -and -not -path "*.venv*" -prune -print0 | xargs -0 -I {} pylint {} --fail-under 8.5
 
               echo "Deactivating virtual environment..."
               deactivate
               echo "Deleting virtual environment..."
               rm -rf .venv
-              echo "Finished processing $dir"
+              echo "Finished processing $dir"fg
               echo "----------------------------------------"
           done
