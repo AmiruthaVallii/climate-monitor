@@ -6,6 +6,13 @@ from psycopg2.extras import RealDictCursor, execute_values
 
 from dotenv import dotenv_values
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
+API_ENDPOINT = (
+    "https://climate-api.open-meteo.com/v1/climate?"
+    "latitude={lat}&longitude={lon}&start_date={start}&end_date={end}&"
+    "models=EC_Earth3P_HR&daily=temperature_2m_max,temperature_2m_mean,"
+    "temperature_2m_min,wind_speed_10m_mean,wind_speed_10m_max,"
+    "rain_sum,snowfall_sum"
+)
 
 
 def get_conn():
@@ -38,11 +45,20 @@ def fetch_climate_data(url: str) -> dict:
 
 def extract_future_data(location_id: int, lat: float, lon: float, start: str, end: str) -> list:
     """extracts the future climate data and returns a list of tuples"""
-    url = f'https://climate-api.open-meteo.com/v1/climate?latitude={lat}&longitude={lon}&start_date={start}&end_date={end}&models=EC_Earth3P_HR&daily=temperature_2m_max,temperature_2m_mean,temperature_2m_min,wind_speed_10m_mean,wind_speed_10m_max,rain_sum,snowfall_sum'
+    url = API_ENDPOINT.format(lat=lat, lon=lon, start=start, end=end)
     response = fetch_climate_data(url)
     data = response['daily']
     rows = []
-    for date, mean_temp, max_temp, min_temp, total_rain, total_snow, mean_wind, max_wind in zip(data['time'], data['temperature_2m_mean'], data['temperature_2m_max'], data['temperature_2m_min'], data['rain_sum'], data['snowfall_sum'], data['wind_speed_10m_mean'], data['wind_speed_10m_max']):
+    for (date,
+         mean_temp,
+         max_temp,
+         min_temp,
+         total_rain,
+         total_snow,
+         mean_wind,
+         max_wind) in zip(data['time'], data['temperature_2m_mean'], data['temperature_2m_max'],
+                          data['temperature_2m_min'], data['rain_sum'], data['snowfall_sum'],
+                          data['wind_speed_10m_mean'], data['wind_speed_10m_max']):
         try:
             date = datetime.strptime(date, "%Y-%m-%d").date()
             mean_temp = float(mean_temp)
@@ -54,7 +70,7 @@ def extract_future_data(location_id: int, lat: float, lon: float, start: str, en
             max_wind = float(max_wind)
             rows.append((date, location_id, mean_temp, max_temp,
                         min_temp, total_rain, total_snow, mean_wind, max_wind))
-        except (ValueError, TypeError) as e:
+        except (ValueError, TypeError):
             continue
     return rows
 
