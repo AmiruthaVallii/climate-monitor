@@ -126,6 +126,14 @@ def lambda_handler(event=None, context=None):  # pylint: disable=unused-argument
     try:
         api_response = fetch_flood_data()
 
+        if not api_response:
+            logging.info("No flood warnings found in API.")
+
+            return {
+                "statusCode": 200,
+                "body": "No flood warnings found in API."
+            }
+
         with get_conn() as connection:
             severity_map, flood_area_map = get_mappings(connection)
 
