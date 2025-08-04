@@ -3,6 +3,8 @@ import bcrypt
 import psycopg2
 import os
 from dotenv import load_dotenv
+from email_validator import validate_email, EmailNotValidError
+import phonenumbers
 
 st.set_page_config(
     page_title="Eco Intel",
@@ -15,6 +17,7 @@ load_dotenv()
 
 
 def get_conn():
+    """Returns connection to RDS."""
     return psycopg2.connect(
         dbname=os.environ["DB_NAME"],
         user=os.environ["DB_USERNAME"],
@@ -24,6 +27,24 @@ def get_conn():
     )
 
 # Register new user
+
+
+def is_valid_email(email):
+    try:
+        validate_email(email)
+        return True
+    except EmailNotValidError as e:
+        st.error(f"Email error: {str(e)}")
+        return False
+
+
+def is_valid_phone(phone):
+    try:
+        parsed = phonenumbers.parse(phone, "GB")
+        return phonenumbers.is_valid_number(parsed)
+    except phonenumbers.NumberParseException as e:
+        st.error(f"Phone number error: {str(e)}")
+        return False
 
 
 def register_user(first_name, last_name, email, phone, username, password):
@@ -74,16 +95,20 @@ if auth_mode == "Register":
     new_user = st.text_input("Username")
     new_pass = st.text_input("Password", type="password")
 
-    if st.button("Register"):
-        if all([first_name, last_name, email, phone, new_user, new_pass]):
-            success = register_user(
-                first_name, last_name, email, phone, new_user, new_pass)
-            if success:
-                st.success("User registered successfully. You can now log in.")
-            else:
-                st.error("Username already exists or an error occurred.")
+if st.button("Register"):
+    if not all([first_name, last_name, email, phone, new_user, new_pass]):
+        st.warning("Please fill in all fields.")
+    elif not is_valid_email(email):
+        pass
+    elif not is_valid_phone(phone):
+        pass
+    else:
+        success = register_user(first_name, last_name,
+                                email, phone, new_user, new_pass)
+        if success:
+            st.success("User registered successfully. You can now log in.")
         else:
-            st.warning("Please fill in all fields.")
+            st.error("Username or email already exists, or an error occurred.")
 
 elif auth_mode == "Login":
     username = st.text_input("Username")
