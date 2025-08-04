@@ -30,3 +30,11 @@ variable "live_flood_warnings_lambda_name" {
   type        = string
   default     = "c18-climate-monitor-live-flood-warnings-lambda"
 }
+variable "future_climate_data_lambda_name" {
+  type        = string
+  default     = "c18-climate-monitor-future-predictions-lambda"
+}
+variable "location_assignment_lambda_name" {
+  type        = string
+  default     = "c18-climate-monitor-location-assignment-lambda"
+}

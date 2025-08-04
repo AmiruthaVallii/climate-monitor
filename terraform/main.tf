@@ -394,3 +394,85 @@ resource "aws_lambda_function" "live_flood_warnings" {
     aws_cloudwatch_log_group.live_flood_warnings
   ]
 }
+
+resource "aws_cloudwatch_log_group" "location_assignment" {
+  name              = "/aws/lambda/${var.location_assignment_lambda_name}"
+  retention_in_days = 7
+
+  tags = {
+    Environment = "production"
+    Function    = var.location_assignment_lambda_name
+  }
+}
+
+resource "aws_lambda_function" "location_assignment" {
+  function_name = var.location_assignment_lambda_name
+  role          = aws_iam_role.lambda.arn
+  package_type  = "Image"
+  image_uri     = "${aws_ecr_repository.location_assignment.repository_url}:latest"
+  memory_size   = 256
+  timeout       = 60
+  architectures = ["x86_64"]
+
+  environment {
+    variables = {
+      DB_HOST     = aws_db_instance.climate.address
+      DB_PORT     = 5432
+      DB_USER     = "climate"
+      DB_PASSWORD = var.db_password
+      DB_NAME     = "postgres"
+    }
+  }
+
+  logging_config {
+    log_format            = "JSON"
+    application_log_level = "INFO"
+    system_log_level      = "INFO"
+  }
+
+  depends_on = [
+    aws_iam_role_policy_attachment.lambda_basic_exec_role,
+    aws_cloudwatch_log_group.location_assignment
+  ]
+}
+
+resource "aws_cloudwatch_log_group" "future_climate" {
+  name              = "/aws/lambda/${var.future_climate_data_lambda_name}"
+  retention_in_days = 7
+
+  tags = {
+    Environment = "production"
+    Function    = var.future_climate_data_lambda_name
+  }
+}
+
+resource "aws_lambda_function" "future_climate" {
+  function_name = var.future_climate_data_lambda_name
+  role          = aws_iam_role.lambda.arn
+  package_type  = "Image"
+  image_uri     = "${aws_ecr_repository.future_predictions.repository_url}:latest"
+  memory_size   = 256
+  timeout       = 60
+  architectures = ["x86_64"]
+
+  environment {
+    variables = {
+      DB_HOST     = aws_db_instance.climate.address
+      DB_PORT     = 5432
+      DB_USER     = "climate"
+      DB_PASSWORD = var.db_password
+      DB_NAME     = "postgres"
+    }
+  }
+
+  logging_config {
+    log_format            = "JSON"
+    application_log_level = "INFO"
+    system_log_level      = "INFO"
+  }
+
+  depends_on = [
+    aws_iam_role_policy_attachment.lambda_basic_exec_role,
+    aws_cloudwatch_log_group.future_climate
+  ]
+}
