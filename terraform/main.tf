@@ -33,7 +33,7 @@ resource "aws_vpc_security_group_ingress_rule" "allow_ingress_5432" {
 resource "aws_db_instance" "climate" {
   allocated_storage    = 100
   db_name = "postgres"
-  identifier             = "c18-climate-monitor-rds"
+  identifier           = "c18-climate-monitor-rds"
   engine               = "postgres"
   engine_version       = "17.5"
   instance_class       = "db.t3.micro"
@@ -342,5 +342,46 @@ resource "aws_lambda_function" "historic_air_quality" {
   depends_on = [
     aws_iam_role_policy_attachment.lambda_basic_exec_role,
     aws_cloudwatch_log_group.historic_air_quality
+  ]
+}
+
+resource "aws_cloudwatch_log_group" "live_flood_warnings" {
+  name              = "/aws/lambda/${var.live_flood_warnings_lambda_name}"
+  retention_in_days = 7
+
+  tags = {
+    Environment = "production"
+    Function    = var.live_flood_warnings_lambda_name
+  }
+}
+
+resource "aws_lambda_function" "live_flood_warnings" {
+  function_name = var.live_flood_warnings_lambda_name
+  role          = aws_iam_role.lambda.arn
+  package_type  = "Image"
+  image_uri     = "${aws_ecr_repository.flood_warning_check.repository_url}:latest"
+  memory_size   = 256
+  timeout       = 60
+  architectures = ["x86_64"]
+
+  environment {
+    variables = {
+      DB_HOST     = aws_db_instance.climate.address
+      DB_PORT     = 5432
+      DB_USER     = "climate"
+      DB_PASSWORD = var.db_password
+      DB_NAME     = "postgres"
+    }
+  }
+
+  logging_config {
+    log_format            = "JSON"
+    application_log_level = "INFO"
+    system_log_level      = "INFO"
+  }
+
+  depends_on = [
+    aws_iam_role_policy_attachment.lambda_basic_exec_role,
+    aws_cloudwatch_log_group.live_flood_warnings
   ]
 }
