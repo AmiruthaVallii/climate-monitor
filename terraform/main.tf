@@ -559,3 +559,58 @@ resource "aws_lambda_function" "current_reading_orchestrator" {
     aws_cloudwatch_log_group.current_reading_orchestrator
   ]
 }
+
+
+
+resource "aws_iam_role" "lambda_scheduler" {
+  name = "c18-climate-monitor-scheduler-iam"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+          Service = ["scheduler.amazonaws.com"]
+        }
+        Action = "sts:AssumeRole"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy" "pipeline_scheduler" {
+  name = "c18-climate-monitor-scheduler-policy"
+  role = aws_iam_role.lambda_scheduler.id
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow",
+        Action = [
+          "lambda:InvokeFunction"
+        ]
+        Resource = [
+          "*"
+        ]
+      }
+    ]
+  })
+}
+
+
+resource "aws_scheduler_schedule" "live_flood_warnings_scheduler" {
+  name = "c18-climate-monitor-live-flood-warnings-scheduler"
+
+  flexible_time_window {
+    mode = "OFF"
+  }
+
+  schedule_expression          = "cron(*/15 * * * ? *)"
+  schedule_expression_timezone = "Europe/London"
+
+  target {
+    arn      = aws_lambda_function.live_flood_warnings.arn
+    role_arn = aws_iam_role.lambda_scheduler.arn
+  }
+
+}
