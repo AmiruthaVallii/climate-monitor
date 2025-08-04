@@ -72,8 +72,7 @@ def get_flood_area(config_values) -> dict:
     try:
         cur.execute('select flood_area_code,flood_area_id from flood_areas;')
         results = cur.fetchall()
-        results_dict = {result['flood_area_code']
-            : result["flood_area_id"] for result in results}
+        results_dict = {result['flood_area_code']                        : result["flood_area_id"] for result in results}
         return results_dict
     finally:
         cur.close()
@@ -88,9 +87,9 @@ def match_flood_area_codes_to_flood_area_id(df: pd.DataFrame, mapping_dict: dict
         lambda x: [mapping_dict.get(val) for val in x])
     df = df.explode('flood_area_codes_ids')
     df = df.dropna(subset=['flood_area_codes_ids'])
-    df = df.drop('latitude', axis=1)
-    df = df.drop('longitude', axis=1)
-    df = df.drop('flood_area_codes', axis=1)
+    df = df.drop('latitude', axis=1, errors='ignore')
+    df = df.drop('longitude', axis=1, errors='ignore')
+    df = df.drop('flood_area_codes', axis=1, errors='ignore')
     return df
 
 

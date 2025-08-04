@@ -1,7 +1,8 @@
 """Lambda function to assign new locations their flood ids"""
-from dotenv import dotenv_values
+from dotenv import load_dotenv
 import pandas as pd
 from seed_flood_area_assignment import get_flood_area_codes, get_flood_area, match_flood_area_codes_to_flood_area_id, insert_into_flood_assignment
+import os
 
 
 def lambda_handler(event: dict, context) -> dict:  # pylint: disable=unused-argument
@@ -14,7 +15,12 @@ def lambda_handler(event: dict, context) -> dict:  # pylint: disable=unused-argu
     Returns:
         Dict containing status message
     """
-    config_values = dotenv_values()
+    load_dotenv()
+    config_values = {'USER': os.getenv('USER'),
+                     'DBPASSWORD': os.getenv('DBPASSWORD'),
+                     'DBNAME': os.getenv('DBNAME'),
+                     'PORT': os.getenv('PORT'),
+                     'HOST': os.getenv('HOST')}
     codes_for_new_location = get_flood_area_codes(
         event['latitude'], event['longitude'])
     df = pd.DataFrame(

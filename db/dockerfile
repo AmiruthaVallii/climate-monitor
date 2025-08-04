@@ -4,5 +4,6 @@ WORKDIR ${LAMBDA_TASK_ROOT}
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 COPY location_assignment_handler.py .
+COPY seed_flood_area_assignment.py .
 
 CMD [ "location_assignment_handler.lambda_handler" ]
