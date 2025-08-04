@@ -1,10 +1,11 @@
 """Extract future modelled weather and inserts into database"""
 from datetime import datetime
+import os
 import requests
 from psycopg2 import connect
 from psycopg2.extras import RealDictCursor, execute_values
 
-from dotenv import dotenv_values
+from dotenv import load_dotenv
 from tenacity import retry, stop_after_attempt, wait_random_exponential, retry_if_exception_type
 API_ENDPOINT = (
     "https://climate-api.open-meteo.com/v1/climate?"
@@ -17,7 +18,12 @@ API_ENDPOINT = (
 
 def get_conn():
     """connects to db"""
-    config_values = dotenv_values()
+    load_dotenv()
+    config_values = {'USER': os.getenv('USER'),
+                     'DBPASSWORD': os.getenv('DBPASSWORD'),
+                     'DBNAME': os.getenv('DBNAME'),
+                     'PORT': os.getenv('PORT'),
+                     'HOST': os.getenv('HOST')}
     conn = connect(user=config_values['USER'],
                    password=config_values['DBPASSWORD'],
                    dbname=config_values['DBNAME'],
@@ -95,7 +101,7 @@ def lambda_handler(event: dict, context) -> dict:  # pylint: disable=unused-argu
     Parameters:
         event: Dict containing the location_id, start_date and end_date 
             e.g. {"location_id": 1, "latitude": 51.507351, "longitude": -0.127758,
-                  "start_date": "1940-01-01", "end_date": "1960-01-01"}
+                  "start_date": "2040-01-01", "end_date": "2041-01-01"}
         context: Lambda runtime context
     Returns:
         Dict containing status message
