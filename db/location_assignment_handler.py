@@ -25,7 +25,7 @@ def lambda_handler(event: dict, context) -> dict:  # pylint: disable=unused-argu
 
     return {
         "statusCode": 200,
-        "message": "Future weather data successfully inserted."
+        "message": "Location assigned flood ids."
     }
 
 
