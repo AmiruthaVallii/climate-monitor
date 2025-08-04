@@ -31,18 +31,18 @@ resource "aws_vpc_security_group_ingress_rule" "allow_ingress_5432" {
 }
 
 resource "aws_db_instance" "climate" {
-  allocated_storage    = 100
-  db_name = "postgres"
-  identifier           = "c18-climate-monitor-rds"
-  engine               = "postgres"
-  engine_version       = "17.5"
-  instance_class       = "db.t3.micro"
-  username             = "climate"
-  password             = var.db_password
-  skip_final_snapshot  = true
-  publicly_accessible = true
+  allocated_storage      = 100
+  db_name                = "postgres"
+  identifier             = "c18-climate-monitor-rds"
+  engine                 = "postgres"
+  engine_version         = "17.5"
+  instance_class         = "db.t3.micro"
+  username               = "climate"
+  password               = var.db_password
+  skip_final_snapshot    = true
+  publicly_accessible    = true
   vpc_security_group_ids = [aws_security_group.allow_5432.id]
-  db_subnet_group_name = "c18-public-subnet-group"
+  db_subnet_group_name   = "c18-public-subnet-group"
 }
 
 resource "aws_ecr_repository" "current_weather" {
@@ -169,21 +169,21 @@ resource "aws_ecr_repository" "dashboard" {
 resource "aws_iam_role" "lambda" {
   name = "c18-climate-monitor-lambda-iam"
   assume_role_policy = jsonencode({
-    "Version": "2012-10-17",
-    "Statement": [
+    "Version" : "2012-10-17",
+    "Statement" : [
       {
-        "Action": "sts:AssumeRole",
-        "Principal": {
-          "Service": "lambda.amazonaws.com"
+        "Action" : "sts:AssumeRole",
+        "Principal" : {
+          "Service" : "lambda.amazonaws.com"
         },
-        "Effect": "Allow"
+        "Effect" : "Allow"
       }
     ]
   })
 }
 
 resource "aws_iam_role_policy_attachment" "lambda_basic_exec_role" {
-  role       = aws_iam_role.lambda.name
+  role = aws_iam_role.lambda.name
   # Provides write permissions to CloudWatch Logs
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
 }
@@ -255,7 +255,7 @@ resource "aws_lambda_function" "current_air_quality" {
       DB_USER     = "climate"
       DB_PASSWORD = var.db_password
       DB_NAME     = "postgres"
-      api_key = var.open_weather_api_key
+      api_key     = var.open_weather_api_key
     }
   }
 
@@ -338,7 +338,7 @@ resource "aws_lambda_function" "historic_air_quality" {
       DB_USER     = "climate"
       DB_PASSWORD = var.db_password
       DB_NAME     = "postgres"
-      api_key = var.open_weather_api_key
+      api_key     = var.open_weather_api_key
     }
   }
 
@@ -474,5 +474,49 @@ resource "aws_lambda_function" "future_climate" {
   depends_on = [
     aws_iam_role_policy_attachment.lambda_basic_exec_role,
     aws_cloudwatch_log_group.future_climate
+  ]
+}
+
+
+
+resource "aws_cloudwatch_log_group" "current_reading_orchestrator" {
+  name              = "/aws/lambda/${var.current_reading_orchestrator_lambda_name}"
+  retention_in_days = 7
+
+  tags = {
+    Environment = "production"
+    Function    = var.current_reading_orchestrator_lambda_name
+  }
+}
+
+resource "aws_lambda_function" "current_reading_orchestrator" {
+  function_name = var.current_reading_orchestrator_lambda_name
+  role          = aws_iam_role.lambda.arn
+  package_type  = "Image"
+  image_uri     = "${aws_ecr_repository.current_reading_orchestrator.repository_url}:latest"
+  memory_size   = 256
+  timeout       = 60
+  architectures = ["x86_64"]
+
+  environment {
+    variables = {
+      DB_HOST     = aws_db_instance.climate.address
+      DB_PORT     = 5432
+      DB_USER     = "climate"
+      DB_PASSWORD = var.db_password
+      DB_NAME     = "postgres"
+      AWS_REGION  = "eu-west-2"
+    }
+  }
+
+  logging_config {
+    log_format            = "JSON"
+    application_log_level = "INFO"
+    system_log_level      = "INFO"
+  }
+
+  depends_on = [
+    aws_iam_role_policy_attachment.lambda_basic_exec_role,
+    aws_cloudwatch_log_group.current_reading_orchestrator
   ]
 }
