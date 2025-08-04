@@ -134,3 +134,108 @@ resource "aws_ecr_repository" "dashboard" {
     scan_on_push = true
   }
 }
+
+resource "aws_iam_role" "lambda" {
+  name = "c18-data-fernatics-lambda-iam"
+  assume_role_policy = jsonencode({
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Action": "sts:AssumeRole",
+        "Principal": {
+          "Service": "lambda.amazonaws.com"
+        },
+        "Effect": "Allow"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "lambda_basic_exec_role" {
+  role       = aws_iam_role.lambda.name
+  # Provides write permissions to CloudWatch Logs
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+}
+
+resource "aws_lambda_function" "current_weather" {
+  function_name = "c18-climate-monitor-current-weather-lambda"
+  role          = aws_iam_role.lambda.arn
+  package_type  = "Image"
+  image_uri     = "${aws_ecr_repository.current_weather.repository_url}:latest"
+  memory_size   = 256
+  timeout       = 60
+  architectures = ["x86_64"]
+
+  environment {
+    variables = {
+      DB_HOST     = aws_db_instance.climate.address
+      DB_PORT     = 5432
+      DB_USER     = "climate"
+      DB_PASSWORD = var.db_password
+      DB_NAME     = "postgres"
+    }
+  }
+}
+
+resource "aws_lambda_function" "current_air_quality" {
+  function_name = "c18-climate-monitor-current-air-quality-lambda"
+  role          = aws_iam_role.lambda.arn
+  package_type  = "Image"
+  image_uri     = "${aws_ecr_repository.current_air_quality.repository_url}:latest"
+  memory_size   = 256
+  timeout       = 60
+  architectures = ["x86_64"]
+
+  environment {
+    variables = {
+      DB_HOST     = aws_db_instance.climate.address
+      DB_PORT     = 5432
+      DB_USER     = "climate"
+      DB_PASSWORD = var.db_password
+      DB_NAME     = "postgres"
+      api_key = var.open_weather_api_key
+    }
+  }
+}
+
+resource "aws_lambda_function" "historic_weather" {
+  function_name = "c18-climate-monitor-current-weather-lambda"
+  role          = aws_iam_role.lambda.arn
+  package_type  = "Image"
+  image_uri     = "${aws_ecr_repository.historic_weather.repository_url}:latest"
+  memory_size   = 512
+  timeout       = 400
+  architectures = ["x86_64"]
+
+  environment {
+    variables = {
+      DB_HOST     = aws_db_instance.climate.address
+      DB_PORT     = 5432
+      DB_USER     = "climate"
+      DB_PASSWORD = var.db_password
+      DB_NAME     = "postgres"
+    }
+  }
+}
+
+
+resource "aws_lambda_function" "historic_air_quality" {
+  function_name = "c18-climate-monitor-historic-air-quality-lambda"
+  role          = aws_iam_role.lambda.arn
+  package_type  = "Image"
+  image_uri     = "${aws_ecr_repository.historic_air_quality.repository_url}:latest"
+  memory_size   = 1024
+  timeout       = 400
+  architectures = ["x86_64"]
+
+  environment {
+    variables = {
+      DB_HOST     = aws_db_instance.climate.address
+      DB_PORT     = 5432
+      DB_USER     = "climate"
+      DB_PASSWORD = var.db_password
+      DB_NAME     = "postgres"
+      api_key = var.open_weather_api_key
+    }
+  }
+}
