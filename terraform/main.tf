@@ -505,7 +505,6 @@ resource "aws_lambda_function" "current_reading_orchestrator" {
       DB_USER     = "climate"
       DB_PASSWORD = var.db_password
       DB_NAME     = "postgres"
-      AWS_REGION  = "eu-west-2"
     }
   }
 
