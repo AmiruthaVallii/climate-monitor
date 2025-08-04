@@ -286,7 +286,7 @@ resource "aws_lambda_function" "historic_weather" {
   role          = aws_iam_role.lambda.arn
   package_type  = "Image"
   image_uri     = "${aws_ecr_repository.historic_weather.repository_url}:latest"
-  memory_size   = 512
+  memory_size   = 3008
   timeout       = 400
   architectures = ["x86_64"]
 
@@ -451,8 +451,8 @@ resource "aws_lambda_function" "future_climate" {
   role          = aws_iam_role.lambda.arn
   package_type  = "Image"
   image_uri     = "${aws_ecr_repository.future_predictions.repository_url}:latest"
-  memory_size   = 256
-  timeout       = 60
+  memory_size   = 3008
+  timeout       = 400
   architectures = ["x86_64"]
 
   environment {
