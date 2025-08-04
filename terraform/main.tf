@@ -193,7 +193,7 @@ resource "aws_lambda_function" "current_weather" {
   }
 
   depends_on = [
-    aws_iam_role_policy_attachment.lambda_logs_basic_exec_role,
+    aws_iam_role_policy_attachment.lambda_basic_exec_role,
     aws_cloudwatch_log_group.current_weather
   ]
 }
@@ -235,7 +235,7 @@ resource "aws_lambda_function" "current_air_quality" {
   }
 
   depends_on = [
-    aws_iam_role_policy_attachment.lambda_logs_basic_exec_role,
+    aws_iam_role_policy_attachment.lambda_basic_exec_role,
     aws_cloudwatch_log_group.current_air_quality
   ]
 }
@@ -276,7 +276,7 @@ resource "aws_lambda_function" "historic_weather" {
   }
 
   depends_on = [
-    aws_iam_role_policy_attachment.lambda_logs_basic_exec_role,
+    aws_iam_role_policy_attachment.lambda_basic_exec_role,
     aws_cloudwatch_log_group.historic_weather
   ]
 }
@@ -318,7 +318,7 @@ resource "aws_lambda_function" "historic_air_quality" {
   }
 
   depends_on = [
-    aws_iam_role_policy_attachment.lambda_logs_basic_exec_role,
+    aws_iam_role_policy_attachment.lambda_basic_exec_role,
     aws_cloudwatch_log_group.historic_air_quality
   ]
 }
