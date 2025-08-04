@@ -57,8 +57,8 @@ def get_weather(latitude: float, longitude: float) -> dict:
 
 def insert_reading(reading: dict) -> None:
     """Insert reading into the RDS."""
+    conn = get_connection()
     try:
-        conn = get_connection()
         with conn.cursor() as cur:
             cur.execute(
                 ("INSERT INTO weather_readings "
