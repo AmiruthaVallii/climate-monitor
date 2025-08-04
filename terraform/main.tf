@@ -90,6 +90,15 @@ resource "aws_ecr_repository" "historic_air_quality" {
   }
 }
 
+resource "aws_ecr_repository" "location_assignment" {
+  name                 = "c18-climate-monitor-location-assignment-ecr"
+  image_tag_mutability = "MUTABLE"
+
+  image_scanning_configuration {
+    scan_on_push = true
+  }
+}
+
 data "aws_iam_policy_document" "example" {
   statement {
     sid    = "LambdaECRImageRetrievalPolicy"
