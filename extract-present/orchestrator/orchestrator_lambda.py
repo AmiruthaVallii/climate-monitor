@@ -18,8 +18,8 @@ logging.basicConfig(level=logging.INFO,
 
 lambda_client = boto3.client("lambda")
 
-LIVE_WEATHER_LAMBDA = ""
-LIVE_AIR_QUALITY_LAMBDA = ""
+LIVE_WEATHER_LAMBDA = "c18-climate-monitor-current-weather-lambda"
+LIVE_AIR_QUALITY_LAMBDA = "c18-climate-monitor-current-air-quality-lambda"
 
 
 def get_connection() -> psycopg2.extensions.connection:
@@ -33,7 +33,7 @@ def get_connection() -> psycopg2.extensions.connection:
     )
 
 
-def get_location_data():
+def get_location_data() -> list[tuple]:
     """Return all data from the location table in the RDS"""
     try:
         conn = get_connection()
@@ -46,7 +46,7 @@ def get_location_data():
     return location_data
 
 
-def lambda_handler(event: Any = None, context: Any = None):  # pylint: disable=unused-argument
+def lambda_handler(event: Any = None, context: Any = None) -> None:  # pylint: disable=unused-argument
     """Lambda function to invoke the live weather and air quality lambdas for every location"""
     location_data = get_location_data()
 
@@ -77,6 +77,11 @@ def lambda_handler(event: Any = None, context: Any = None):  # pylint: disable=u
                      aq_response['ResponseMetadata']['HTTPStatusCode'])
 
     logging.info("Successfully inserted all live data.")
+
+    return {
+        "statusCode": 200,
+        "message": "Successfully inserted all live data."
+    }
 
 
 if __name__ == "__main__":
