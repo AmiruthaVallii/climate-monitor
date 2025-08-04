@@ -1,27 +1,24 @@
 """Load data trigger lambdas to load data for new locations."""
+import os
 from datetime import date, timedelta
 from typing import Any
 import json
 import logging
 import boto3
-# from dotenv import load_dotenv
+from dotenv import load_dotenv
 
-HISTORIC_WEATHER_FIRST_DATE = date.fromisoformat(
-    '2010-12-01')  # date.fromisoformat('1940-01-01')
-HISTORIC_WEATHER_LAST_DATE = date.fromisoformat(
-    '2011-02-24')  # date.today() - timedelta(days=6)
-HISTORIC_WEATHER_BATCH_SIZE = 7
-FUTURE_PREDICTIONS_FIRST_DATE = date.fromisoformat(
-    '2026-05-04')  # date.today() + timedelta(days=1)
-FUTURE_PREDICTIONS_LAST_DATE = date.fromisoformat(
-    '2026-08-12')  # date.fromisoformat('2049-12-31')
-FUTURE_PREDICTIONS_BATCH_SIZE = 100
+HISTORIC_WEATHER_FIRST_DATE = date.fromisoformat('1940-01-01')
+HISTORIC_WEATHER_LAST_DATE = date.today() - timedelta(days=6)
+HISTORIC_WEATHER_BATCH_SIZE = 35*365
+FUTURE_PREDICTIONS_FIRST_DATE = date.today() + timedelta(days=1)
+FUTURE_PREDICTIONS_LAST_DATE = date.fromisoformat('2049-12-31')
+FUTURE_PREDICTIONS_BATCH_SIZE = 30*365
 HISTORIC_WEATHER_LAMBDA = "c18-climate-monitor-historic-weather-lambda"
 HISTORIC_AIR_QUALITY_LAMBDA = "c18-climate-monitor-historic-air-quality-lambda"
 FUTURE_PREDICTIONS_LAMBDA = "c18-climate-monitor-future-predictions-lambda"
 LOCATION_ASSIGNMENT_LAMBDA = "c18-climate-monitor-location-assignment-lambda"
 
-# load_dotenv()
+load_dotenv()
 
 logging.basicConfig(
     format="%(levelname)s | %(asctime)s | %(message)s", level=logging.INFO)
@@ -46,21 +43,6 @@ def invoke_with_date_range(lambda_name: str,
     )
     logging.info("Status code: %s",
                  response['ResponseMetadata']['HTTPStatusCode'])
-
-
-# def insert_historic_weather(location: dict, client: Any) -> None:
-#     """Invoke lambdas to insert all historic weather data for the location."""
-#     start_date = HISTORICAL_WEATHER_FIRST_DATE
-#     end_date = HISTORICAL_WEATHER_FIRST_DATE + \
-#         timedelta(days=BATCH_SIZE - 1)
-#     while end_date < HISTORICAL_WEATHER_LAST_DATE:
-#         invoke_with_date_range(HISTORIC_WEATHER_LAMBDA,
-#                                location, start_date, end_date, client)
-#         start_date += timedelta(days=BATCH_SIZE)
-#         end_date += timedelta(days=BATCH_SIZE)
-#     invoke_with_date_range(HISTORIC_WEATHER_LAMBDA,
-#                            location, start_date,
-#                            HISTORICAL_WEATHER_LAST_DATE, client)
 
 
 def date_batch_invoke(lambda_name: str,
@@ -115,12 +97,18 @@ def lambda_handler(event: dict, context: Any) -> dict:  # pylint: disable=unused
     Returns:
         Dict containing status message
     """
+    boto3.setup_default_session(
+        aws_access_key_id=os.getenv("MY_AWS_ACCESS_KEY_ID"),
+        aws_secret_access_key=os.getenv("MY_AWS_SECRET_ACCESS_KEY"),
+        region_name=os.getenv("MY_AWS_REGION")
+    )
     lambda_client = boto3.client('lambda')
     try:
         date_batch_invoke(HISTORIC_WEATHER_LAMBDA, event, HISTORIC_WEATHER_FIRST_DATE,
                           HISTORIC_WEATHER_LAST_DATE, HISTORIC_WEATHER_BATCH_SIZE, lambda_client)
         date_batch_invoke(FUTURE_PREDICTIONS_LAMBDA, event, FUTURE_PREDICTIONS_FIRST_DATE,
-                          FUTURE_PREDICTIONS_LAST_DATE, FUTURE_PREDICTIONS_BATCH_SIZE, lambda_client)
+                          FUTURE_PREDICTIONS_LAST_DATE, FUTURE_PREDICTIONS_BATCH_SIZE,
+                          lambda_client)
         invoke(HISTORIC_AIR_QUALITY_LAMBDA, event, lambda_client)
         invoke(LOCATION_ASSIGNMENT_LAMBDA, event, lambda_client)
 
