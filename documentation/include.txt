@@ -1,3 +1,4 @@
 ERD
 System Diagram
 Dashboard wireframe
+Company logo
