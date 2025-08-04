@@ -136,7 +136,7 @@ resource "aws_ecr_repository" "dashboard" {
 }
 
 resource "aws_iam_role" "lambda" {
-  name = "c18-data-fernatics-lambda-iam"
+  name = "c18-climate-monitor-lambda-iam"
   assume_role_policy = jsonencode({
     "Version": "2012-10-17",
     "Statement": [
