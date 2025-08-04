@@ -158,17 +158,17 @@ resource "aws_iam_role_policy_attachment" "lambda_basic_exec_role" {
 }
 
 resource "aws_cloudwatch_log_group" "current_weather" {
-  name              = "/aws/lambda/${aws_lambda_function.current_weather.function_name}"
+  name              = "/aws/lambda/${var.current_weather_lambda_name}"
   retention_in_days = 7
 
   tags = {
     Environment = "production"
-    Function    = aws_lambda_function.current_weather.function_name
+    Function    = var.current_weather_lambda_name
   }
 }
 
 resource "aws_lambda_function" "current_weather" {
-  function_name = "c18-climate-monitor-current-weather-lambda"
+  function_name = var.current_weather_lambda_name
   role          = aws_iam_role.lambda.arn
   package_type  = "Image"
   image_uri     = "${aws_ecr_repository.current_weather.repository_url}:latest"
@@ -199,17 +199,17 @@ resource "aws_lambda_function" "current_weather" {
 }
 
 resource "aws_cloudwatch_log_group" "current_air_quality" {
-  name              = "/aws/lambda/${aws_lambda_function.current_air_quality.function_name}"
+  name              = "/aws/lambda/${var.current_air_quality_lambda_name}"
   retention_in_days = 7
 
   tags = {
     Environment = "production"
-    Function    = aws_lambda_function.current_air_quality.function_name
+    Function    = var.current_air_quality_lambda_name
   }
 }
 
 resource "aws_lambda_function" "current_air_quality" {
-  function_name = "c18-climate-monitor-current-air-quality-lambda"
+  function_name = var.current_air_quality_lambda_name
   role          = aws_iam_role.lambda.arn
   package_type  = "Image"
   image_uri     = "${aws_ecr_repository.current_air_quality.repository_url}:latest"
@@ -241,17 +241,17 @@ resource "aws_lambda_function" "current_air_quality" {
 }
 
 resource "aws_cloudwatch_log_group" "historic_weather" {
-  name              = "/aws/lambda/${aws_lambda_function.historic_weather.function_name}"
+  name              = "/aws/lambda/${var.historic_weather_lambda_name}"
   retention_in_days = 7
 
   tags = {
     Environment = "production"
-    Function    = aws_lambda_function.historic_weather.function_name
+    Function    = var.historic_weather_lambda_name
   }
 }
 
 resource "aws_lambda_function" "historic_weather" {
-  function_name = "c18-climate-monitor-historic-weather-lambda"
+  function_name = var.historic_weather_lambda_name
   role          = aws_iam_role.lambda.arn
   package_type  = "Image"
   image_uri     = "${aws_ecr_repository.historic_weather.repository_url}:latest"
@@ -282,17 +282,17 @@ resource "aws_lambda_function" "historic_weather" {
 }
 
 resource "aws_cloudwatch_log_group" "historic_air_quality" {
-  name              = "/aws/lambda/${aws_lambda_function.historic_air_quality.function_name}"
+  name              = "/aws/lambda/${var.historic_air_quality_lambda_name}"
   retention_in_days = 7
 
   tags = {
     Environment = "production"
-    Function    = aws_lambda_function.historic_air_quality.function_name
+    Function    = var.historic_air_quality_lambda_name
   }
 }
 
 resource "aws_lambda_function" "historic_air_quality" {
-  function_name = "c18-climate-monitor-historic-air-quality-lambda"
+  function_name = var.historic_air_quality_lambda_name
   role          = aws_iam_role.lambda.arn
   package_type  = "Image"
   image_uri     = "${aws_ecr_repository.historic_air_quality.repository_url}:latest"
