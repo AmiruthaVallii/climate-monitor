@@ -199,7 +199,7 @@ resource "aws_lambda_function" "current_air_quality" {
 }
 
 resource "aws_lambda_function" "historic_weather" {
-  function_name = "c18-climate-monitor-current-weather-lambda"
+  function_name = "c18-climate-monitor-historic-weather-lambda"
   role          = aws_iam_role.lambda.arn
   package_type  = "Image"
   image_uri     = "${aws_ecr_repository.historic_weather.repository_url}:latest"
