@@ -90,6 +90,28 @@ resource "aws_ecr_repository" "historic_air_quality" {
   }
 }
 
+data "aws_iam_policy_document" "example" {
+  statement {
+    sid    = "LambdaECRImageRetrievalPolicy"
+    effect = "Allow"
+
+    principals {
+      type        = "Service"
+      identifiers = ["lambda.amazonaws.com"]
+    }
+
+    actions = [
+      "ecr:GetDownloadUrlForLayer",
+      "ecr:BatchGetImage"
+    ]
+  }
+}
+
+resource "aws_ecr_repository_policy" "example" {
+  repository = aws_ecr_repository.historic_air_quality.name
+  policy     = data.aws_iam_policy_document.example.json
+}
+
 resource "aws_ecr_repository" "new_location_orchestrator" {
   name                 = "c18-climate-monitor-new-location-orchestrator-ecr"
   image_tag_mutability = "MUTABLE"
