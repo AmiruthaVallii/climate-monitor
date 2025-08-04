@@ -479,6 +479,46 @@ resource "aws_lambda_function" "future_climate" {
 
 
 
+
+resource "aws_iam_role" "orchestrator_lambda" {
+  name = "c18-climate-monitor-orchestrator-lambda-iam"
+  assume_role_policy = jsonencode({
+    "Version" : "2012-10-17",
+    "Statement" : [
+      {
+        "Action" : "sts:AssumeRole",
+        "Principal" : {
+          "Service" : "lambda.amazonaws.com"
+        },
+        "Effect" : "Allow"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy" "invoke_lambdas" {
+  name = "invoke-other-lambdas"
+  role = aws_iam_role.orchestrator_lambda.id
+
+  policy = jsonencode({
+    "Version" : "2012-10-17",
+    "Statement" : [
+      {
+        "Effect" : "Allow",
+        "Action" : "lambda:InvokeFunction",
+        "Resource" : ["*"]
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "orchestrator_lambda_basic_exec_role" {
+  role       = aws_iam_role.orchestrator_lambda.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+}
+
+
+
 resource "aws_cloudwatch_log_group" "current_reading_orchestrator" {
   name              = "/aws/lambda/${var.current_reading_orchestrator_lambda_name}"
   retention_in_days = 7
@@ -491,7 +531,7 @@ resource "aws_cloudwatch_log_group" "current_reading_orchestrator" {
 
 resource "aws_lambda_function" "current_reading_orchestrator" {
   function_name = var.current_reading_orchestrator_lambda_name
-  role          = aws_iam_role.lambda.arn
+  role          = aws_iam_role.orchestrator_lambda.arn
   package_type  = "Image"
   image_uri     = "${aws_ecr_repository.current_reading_orchestrator.repository_url}:latest"
   memory_size   = 256
@@ -515,7 +555,7 @@ resource "aws_lambda_function" "current_reading_orchestrator" {
   }
 
   depends_on = [
-    aws_iam_role_policy_attachment.lambda_basic_exec_role,
+    aws_iam_role_policy_attachment.orchestrator_lambda_basic_exec_role,
     aws_cloudwatch_log_group.current_reading_orchestrator
   ]
 }
