@@ -1,4 +1,4 @@
-"""This script checks the UK Flood Monitoring API and uploads data to `flood_warnings` table in RDS"""
+"""Lambda handler that checks the UK Flood Monitoring API and uploads data to `flood_warnings` table in RDS"""
 
 import os
 import logging
@@ -117,7 +117,7 @@ def insert_flood_data(records):
         logging.info("Inserted %d new flood warnings.", len(records))
 
 
-def lambda_handler(event=None, context=None):
+def lambda_handler(event=None, context=None):  # pylint: disable=unused-argument
 
     config_logger()
 
@@ -152,7 +152,3 @@ def lambda_handler(event=None, context=None):
             "statusCode": 500,
             "body": f"Failed to upload flood warnings {e}"
         }
-
-
-if __name__ == "__main__":
-    pass
