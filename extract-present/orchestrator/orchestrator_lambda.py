@@ -48,40 +48,45 @@ def get_location_data() -> list[tuple]:
 
 def lambda_handler(event: Any = None, context: Any = None) -> None:  # pylint: disable=unused-argument
     """Lambda function to invoke the live weather and air quality lambdas for every location"""
-    location_data = get_location_data()
+    try:
+        location_data = get_location_data()
 
-    for location in location_data:
+        for location in location_data:
 
-        payload = {
-            "location_id": location[0],
-            "latitude": location[2],
-            "longitude": location[3]
+            payload = {
+                "location_id": location[0],
+                "latitude": location[2],
+                "longitude": location[3]
+            }
+
+            # Live weather data
+            weather_response = lambda_client.invoke(
+                FunctionName=LIVE_WEATHER_LAMBDA,
+                InvocationType="Event",
+                Payload=json.dumps(payload)
+            )
+            logging.info("Weather data for %s uploaded - Status code: %s", location[1],
+                         weather_response['ResponseMetadata']['HTTPStatusCode'])
+
+            # Live air quality data
+            aq_response = lambda_client.invoke(
+                FunctionName=LIVE_AIR_QUALITY_LAMBDA,
+                InvocationType="Event",
+                Payload=json.dumps(payload)
+            )
+            logging.info("Air quality data for %s uploaded - Status code: %s", location[1],
+                         aq_response['ResponseMetadata']['HTTPStatusCode'])
+
+            logging.info("Successfully inserted all live data.")
+
+        return {
+            "statusCode": 200,
+            "message": "Successfully inserted all live data."
         }
 
-        # Live weather data
-        weather_response = lambda_client.invoke(
-            FunctionName=LIVE_WEATHER_LAMBDA,
-            InvocationType="Event",
-            Payload=json.dumps(payload)
-        )
-        logging.info("Weather data for %s uploaded - Status code: %s", location[1],
-                     weather_response['ResponseMetadata']['HTTPStatusCode'])
-
-        # Live air quality data
-        aq_response = lambda_client.invoke(
-            FunctionName=LIVE_AIR_QUALITY_LAMBDA,
-            InvocationType="Event",
-            Payload=json.dumps(payload)
-        )
-        logging.info("Air quality data for %s uploaded - Status code: %s", location[1],
-                     aq_response['ResponseMetadata']['HTTPStatusCode'])
-
-    logging.info("Successfully inserted all live data.")
-
-    return {
-        "statusCode": 200,
-        "message": "Successfully inserted all live data."
-    }
+    except Exception as e:
+        logging.error("Error inserting live data: %s", str(e))
+        raise
 
 
 if __name__ == "__main__":
