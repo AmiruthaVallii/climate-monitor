@@ -16,7 +16,7 @@ load_dotenv()
 logging.basicConfig(level=logging.INFO,
                     format='%(levelname)s: %(message)s')
 
-lambda_client = boto3.client("lambda")
+lambda_client = boto3.client("lambda", region_name=os.getenv("AWS_REGION"))
 
 LIVE_WEATHER_LAMBDA = "c18-climate-monitor-current-weather-lambda"
 LIVE_AIR_QUALITY_LAMBDA = "c18-climate-monitor-current-air-quality-lambda"
