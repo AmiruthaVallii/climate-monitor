@@ -157,6 +157,16 @@ resource "aws_iam_role_policy_attachment" "lambda_basic_exec_role" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
 }
 
+resource "aws_cloudwatch_log_group" "current_weather" {
+  name              = "/aws/lambda/${aws_lambda_function.current_weather.function_name}"
+  retention_in_days = 7
+
+  tags = {
+    Environment = "production"
+    Function    = aws_lambda_function.current_weather.function_name
+  }
+}
+
 resource "aws_lambda_function" "current_weather" {
   function_name = "c18-climate-monitor-current-weather-lambda"
   role          = aws_iam_role.lambda.arn
@@ -174,6 +184,27 @@ resource "aws_lambda_function" "current_weather" {
       DB_PASSWORD = var.db_password
       DB_NAME     = "postgres"
     }
+  }
+
+  logging_config {
+    log_format            = "JSON"
+    application_log_level = "INFO"
+    system_log_level      = "INFO"
+  }
+
+  depends_on = [
+    aws_iam_role_policy_attachment.lambda_logs_basic_exec_role,
+    aws_cloudwatch_log_group.current_weather
+  ]
+}
+
+resource "aws_cloudwatch_log_group" "current_air_quality" {
+  name              = "/aws/lambda/${aws_lambda_function.current_air_quality.function_name}"
+  retention_in_days = 7
+
+  tags = {
+    Environment = "production"
+    Function    = aws_lambda_function.current_air_quality.function_name
   }
 }
 
@@ -196,6 +227,27 @@ resource "aws_lambda_function" "current_air_quality" {
       api_key = var.open_weather_api_key
     }
   }
+
+  logging_config {
+    log_format            = "JSON"
+    application_log_level = "INFO"
+    system_log_level      = "INFO"
+  }
+
+  depends_on = [
+    aws_iam_role_policy_attachment.lambda_logs_basic_exec_role,
+    aws_cloudwatch_log_group.current_air_quality
+  ]
+}
+
+resource "aws_cloudwatch_log_group" "historic_weather" {
+  name              = "/aws/lambda/${aws_lambda_function.historic_weather.function_name}"
+  retention_in_days = 7
+
+  tags = {
+    Environment = "production"
+    Function    = aws_lambda_function.historic_weather.function_name
+  }
 }
 
 resource "aws_lambda_function" "historic_weather" {
@@ -216,8 +268,28 @@ resource "aws_lambda_function" "historic_weather" {
       DB_NAME     = "postgres"
     }
   }
+
+  logging_config {
+    log_format            = "JSON"
+    application_log_level = "INFO"
+    system_log_level      = "INFO"
+  }
+
+  depends_on = [
+    aws_iam_role_policy_attachment.lambda_logs_basic_exec_role,
+    aws_cloudwatch_log_group.historic_weather
+  ]
 }
 
+resource "aws_cloudwatch_log_group" "historic_air_quality" {
+  name              = "/aws/lambda/${aws_lambda_function.historic_air_quality.function_name}"
+  retention_in_days = 7
+
+  tags = {
+    Environment = "production"
+    Function    = aws_lambda_function.historic_air_quality.function_name
+  }
+}
 
 resource "aws_lambda_function" "historic_air_quality" {
   function_name = "c18-climate-monitor-historic-air-quality-lambda"
@@ -238,4 +310,15 @@ resource "aws_lambda_function" "historic_air_quality" {
       api_key = var.open_weather_api_key
     }
   }
+
+  logging_config {
+    log_format            = "JSON"
+    application_log_level = "INFO"
+    system_log_level      = "INFO"
+  }
+
+  depends_on = [
+    aws_iam_role_policy_attachment.lambda_logs_basic_exec_role,
+    aws_cloudwatch_log_group.historic_air_quality
+  ]
 }
