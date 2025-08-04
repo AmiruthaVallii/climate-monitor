@@ -156,7 +156,4 @@ def lambda_handler(event=None, context=None):  # pylint: disable=unused-argument
 
     except Exception as e:
         logging.error("Error in Lambda execution: %s", e)
-        return {
-            "statusCode": 500,
-            "body": f"Failed to upload flood warnings {e}"
-        }
+        raise e
