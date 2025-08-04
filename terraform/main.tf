@@ -416,9 +416,9 @@ resource "aws_lambda_function" "location_assignment" {
 
   environment {
     variables = {
-      HOST     = aws_db_instance.climate.address
-      PORT     = 5432
-      USER     = "climate"
+      HOST       = aws_db_instance.climate.address
+      PORT       = 5432
+      USER       = "climate"
       DBPASSWORD = var.db_password
       DBNAME     = "postgres"
     }
@@ -457,9 +457,9 @@ resource "aws_lambda_function" "future_climate" {
 
   environment {
     variables = {
-      HOST     = aws_db_instance.climate.address
-      PORT     = 5432
-      USER     = "climate"
+      HOST       = aws_db_instance.climate.address
+      PORT       = 5432
+      USER       = "climate"
       DBPASSWORD = var.db_password
       DBNAME     = "postgres"
     }
@@ -505,7 +505,6 @@ resource "aws_lambda_function" "current_reading_orchestrator" {
       DB_USER     = "climate"
       DB_PASSWORD = var.db_password
       DB_NAME     = "postgres"
-      AWS_REGION  = "eu-west-2"
     }
   }
 
