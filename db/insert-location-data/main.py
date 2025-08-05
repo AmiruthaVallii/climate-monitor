@@ -62,4 +62,4 @@ if __name__ == "__main__":
         )
         logging.info("Status code: %s",
                      response['ResponseMetadata']['HTTPStatusCode'])
-        sleep(5)
+        sleep(20*60)  # Respect API limit
