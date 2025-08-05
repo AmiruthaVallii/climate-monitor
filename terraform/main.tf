@@ -581,9 +581,9 @@ resource "aws_lambda_function" "new_location_orchestrator" {
 
   environment {
     variables = {
-      MY_AWS_ACCESS_KEY_ID=var.my_aws_access_key_id
-      MY_AWS_SECRET_ACCESS_KEY=var.my_aws_secret_access_key
-      MY_AWS_REGION="eu-west-2"
+      MY_AWS_ACCESS_KEY_ID     = var.my_aws_access_key_id
+      MY_AWS_SECRET_ACCESS_KEY = var.my_aws_secret_access_key
+      MY_AWS_REGION            = "eu-west-2"
     }
   }
 
