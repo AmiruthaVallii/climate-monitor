@@ -3,11 +3,12 @@ import streamlit as st
 import psycopg2
 import pandas as pd
 from dotenv import load_dotenv
-from datetime import datetime
+import altair as alt
 
 
 def get_conn():
     """Returns connection to RDS."""
+
     return psycopg2.connect(
         dbname=os.environ["DB_NAME"],
         user=os.environ["DB_USERNAME"],
@@ -18,6 +19,7 @@ def get_conn():
 
 
 def get_live_flood_warnings() -> pd.DataFrame:
+    """Fetches live flood warnings from the database."""
 
     try:
         with get_conn() as conn:
@@ -42,48 +44,106 @@ def get_live_flood_warnings() -> pd.DataFrame:
         st.error(f"Database error loading live warnings: {e}")
 
 
-def display_live_flood_warnings(live_warnings: pd.DataFrame):
+def format(text):
+    """Replaces \n with <br> for HTML formatting."""
 
+    if pd.isna(text):
+        return ""
+    return str(text).replace("\n", "<br>").replace("\r", "")
+
+
+def display_live_flood_warnings(live_warnings: pd.DataFrame):
     if live_warnings.empty:
         st.success("✅ No active flood warnings.")
-
     else:
         live_warnings["formatted_time"] = live_warnings["updated_at"].dt.strftime(
             '%Y-%m-%d %H:%M')
 
-        live_warnings["html_block"] = live_warnings.apply(lambda row: f"""
-            <div style="border:1px solid #ccc; border-radius:10px; padding:10px; margin-bottom:10px;">
-                <div style="display:flex; align-items:center;">
-                    <div style="height:10px;width:10px;background:red;border-radius:50%;margin-right:10px;animation:pulse 1s infinite;"></div>
-                    <strong>{row['severity_name']}</strong> — {row['location']}
+        live_warnings["location_description"] = live_warnings["location_description"].apply(
+            format)
+        live_warnings["message"] = live_warnings["message"].apply(format)
+
+        st.markdown("""
+            <style>
+            @keyframes pulse {
+                0% { transform: scale(1); opacity: 1; }
+                50% { transform: scale(1.5); opacity: 0.5; }
+                100% { transform: scale(1); opacity: 1; }
+            }
+            </style>
+        """, unsafe_allow_html=True)
+
+        for _, row in live_warnings.iterrows():
+            warning_html = f"""
+                <div style="border:1px solid #ccc; border-radius:10px; padding:10px; margin-bottom:10px;">
+                    <div style="display:flex; align-items:center;">
+                        <div style="height:10px;width:10px;background:red;border-radius:50%;margin-right:10px;animation:pulse 1s infinite;"></div>
+                        <strong>{row['severity_name']}</strong> : {row['location']}
+                    </div>
+                    <small>{row['formatted_time']}</small><br>
+                    <em>{row['location_description']}</em>
+                    <p>{row['message']}</p>
                 </div>
-                <small>{row['formatted_time']}</small><br>
-                <em>{row['location_description']}</em>
-                <p>{row['message']}</p>
-            </div>
-        """, axis=1)
-
-        combined_html = "\n".join(live_warnings["html_block"])
-
-        combined_html += """
-        <style>
-        @keyframes pulse {
-            0% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.5); opacity: 0.5; }
-            100% { transform: scale(1); opacity: 1; }
-        }
-        </style>
-        """
-
-        st.markdown(combined_html, unsafe_allow_html=True)
+            """
+            st.markdown(warning_html, unsafe_allow_html=True)
 
 
 def get_historical_flood_data():
-    pass
+
+    try:
+        with get_conn() as conn:
+            location_query = """
+                SELECT 
+                    hf.date, 
+                    l.location_name AS location, 
+                    fs.severity_name
+                FROM historical_floods hf
+                JOIN flood_areas fa ON hf.flood_area_id = fa.flood_area_id
+                JOIN flood_area_assignment faa ON fa.flood_area_id = faa.flood_area_id
+                JOIN locations l ON faa.location_id = l.location_id
+                JOIN flood_severity fs ON hf.severity_id = fs.severity_id
+                ORDER BY hf.date DESC;
+                """
+            areas_df = pd.read_sql(location_query, conn)
+            return areas_df
+    except Exception as e:
+        st.error(f"Database error loading historical data: {e}")
 
 
-def display_historical_flood_data():
-    pass
+def display_historical_flood_data(historical_floods: pd.DataFrame):
+    if historical_floods.empty:
+        st.info("No historical flood data available.")
+        return
+
+    location_choices = sorted(historical_floods['location'].unique())
+    selected_location = st.selectbox("📍 Select Location", location_choices)
+
+    filtered_df = historical_floods[historical_floods["location"]
+                                    == selected_location].copy()
+    filtered_df["date"] = pd.to_datetime(filtered_df["date"])
+
+    # group by month and severity
+    filtered_df["month"] = filtered_df["date"].dt.to_period(
+        "M").dt.to_timestamp()
+    monthly_counts = (
+        filtered_df.groupby(["month", "severity_name"])
+        .size()
+        .reset_index(name="count")
+        .rename(columns={"severity_name": "Severity", "month": "Month"})
+    )
+
+    chart = alt.Chart(monthly_counts).mark_line(point=True).encode(
+        x=alt.X("Month:T", title="Month"),
+        y=alt.Y("count:Q", title="Number of Flood Events"),
+        color=alt.Color("Severity:N", title="Severity"),
+        tooltip=["Month:T", "Severity:N", "count"]
+    ).properties(
+        width="container",
+        height=500,
+        title=f"📈 Flood Warnings in {selected_location} Over the Years"
+    )
+
+    st.altair_chart(chart, use_container_width=True)
 
 
 if __name__ == "__main__":
@@ -98,9 +158,9 @@ if __name__ == "__main__":
     st.title("🌊 Flood Warnings and History")
 
     st.header("🔴 Live Flood Warnings")
-
     flood_warnings = get_live_flood_warnings()
-
     display_live_flood_warnings(flood_warnings)
 
     st.header("📜 Browse Historical Flood Data")
+    historical_floods = get_historical_flood_data()
+    display_historical_flood_data(historical_floods)
