@@ -8,9 +8,6 @@ from email_validator import validate_email, EmailNotValidError, EmailSyntaxError
 import phonenumbers
 
 
-load_dotenv()
-
-
 def get_conn():
     """Returns connection to RDS."""
     return psycopg2.connect(
@@ -81,6 +78,8 @@ def login_user(username: str, password: str) -> bool:
 
 
 if __name__ == "__main__":
+
+    load_dotenv()
 
     st.set_page_config(
         page_title="Eco Intel",
