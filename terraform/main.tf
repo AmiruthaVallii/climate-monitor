@@ -559,3 +559,42 @@ resource "aws_lambda_function" "current_reading_orchestrator" {
     aws_cloudwatch_log_group.current_reading_orchestrator
   ]
 }
+
+resource "aws_cloudwatch_log_group" "new_location_orchestrator" {
+  name              = "/aws/lambda/${var.new_location_orchestrator_lambda_name}"
+  retention_in_days = 7
+
+  tags = {
+    Environment = "production"
+    Function    = var.new_location_orchestrator_lambda_name
+  }
+}
+
+resource "aws_lambda_function" "new_location_orchestrator" {
+  function_name = var.new_location_orchestrator_lambda_name
+  role          = aws_iam_role.orchestrator_lambda.arn
+  package_type  = "Image"
+  image_uri     = "${aws_ecr_repository.new_location_orchestrator.repository_url}:latest"
+  memory_size   = 256
+  timeout       = 60
+  architectures = ["x86_64"]
+
+  environment {
+    variables = {
+      MY_AWS_ACCESS_KEY_ID=var.my_aws_access_key_id
+      MY_AWS_SECRET_ACCESS_KEY=var.my_aws_secret_access_key
+      MY_AWS_REGION="eu-west-2"
+    }
+  }
+
+  logging_config {
+    log_format            = "JSON"
+    application_log_level = "INFO"
+    system_log_level      = "INFO"
+  }
+
+  depends_on = [
+    aws_iam_role_policy_attachment.orchestrator_lambda_basic_exec_role,
+    aws_cloudwatch_log_group.new_location_orchestrator
+  ]
+}
