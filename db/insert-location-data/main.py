@@ -1,12 +1,11 @@
-"""Lambda handler to extract and insert weather reading into the RDS."""
+"""Script to populate the tables in the database."""
 import os
 from time import sleep
-from typing import Any
 import logging
 import json
 from dotenv import load_dotenv
 import psycopg2
-import boto3
+import boto3  # pylint: disable=import-error
 
 LAMBDA_NAME = "c18-climate-monitor-new-location-orchestrator-lambda"
 
@@ -41,14 +40,14 @@ def get_locations() -> list:
 
 
 if __name__ == "__main__":
-    locations = get_locations()
+    all_locations = get_locations()
     boto3.setup_default_session(
         aws_access_key_id=os.getenv("MY_AWS_ACCESS_KEY_ID"),
         aws_secret_access_key=os.getenv("MY_AWS_SECRET_ACCESS_KEY"),
         region_name=os.getenv("MY_AWS_REGION")
     )
     lambda_client = boto3.client('lambda')
-    for location in locations:
+    for location in all_locations:
         payload = {
             "location_id": location[0],
             "latitude": location[1],
