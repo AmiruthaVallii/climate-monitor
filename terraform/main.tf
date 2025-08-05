@@ -654,3 +654,20 @@ resource "aws_scheduler_schedule" "live_flood_warnings_scheduler" {
     role_arn = aws_iam_role.lambda_scheduler.arn
   }
 }
+
+
+resource "aws_scheduler_schedule" "current_reading_orchestrator_scheduler" {
+  name = "c18-climate-monitor-current_reading_orchestrator-scheduler"
+
+  flexible_time_window {
+    mode = "OFF"
+  }
+
+  schedule_expression          = "cron(*/15 * * * ? *)"
+  schedule_expression_timezone = "Europe/London"
+
+  target {
+    arn      = aws_lambda_function.current_reading_orchestrator.arn
+    role_arn = aws_iam_role.lambda_scheduler.arn
+  }
+}
