@@ -1,3 +1,4 @@
+"""Fetches flood information from RDS and renders flood page for dashboard"""
 import os
 import streamlit as st
 import psycopg2
@@ -44,7 +45,7 @@ def get_live_flood_warnings() -> pd.DataFrame:
         st.error(f"Database error loading live warnings: {e}")
 
 
-def format(text):
+def format_text(text):
     """Replaces \n with <br> for HTML formatting."""
 
     if pd.isna(text):
@@ -53,6 +54,8 @@ def format(text):
 
 
 def display_live_flood_warnings(live_warnings: pd.DataFrame):
+    """Displays live flood warnings."""
+
     if live_warnings.empty:
         st.success("✅ No active flood warnings.")
     else:
@@ -60,8 +63,8 @@ def display_live_flood_warnings(live_warnings: pd.DataFrame):
             '%Y-%m-%d %H:%M')
 
         live_warnings["location_description"] = live_warnings["location_description"].apply(
-            format)
-        live_warnings["message"] = live_warnings["message"].apply(format)
+            format_text)
+        live_warnings["message"] = live_warnings["message"].apply(format_text)
 
         st.markdown("""
             <style>
@@ -73,6 +76,7 @@ def display_live_flood_warnings(live_warnings: pd.DataFrame):
             </style>
         """, unsafe_allow_html=True)
 
+        # iterrows is fine here since there won't be a lot of flood warnings to display at once
         for _, row in live_warnings.iterrows():
             warning_html = f"""
                 <div style="border:1px solid #ccc; border-radius:10px; padding:10px; margin-bottom:10px;">
@@ -88,7 +92,8 @@ def display_live_flood_warnings(live_warnings: pd.DataFrame):
             st.markdown(warning_html, unsafe_allow_html=True)
 
 
-def get_historical_flood_data():
+def get_historical_flood_data() -> pd.DataFrame:
+    """Fetches historical flood data from database."""
 
     try:
         with get_conn() as conn:
@@ -111,6 +116,9 @@ def get_historical_flood_data():
 
 
 def display_historical_flood_data(historical_floods: pd.DataFrame):
+    """Displays historical flood data as a line graph.
+        - Allows users to select which location they want to view
+          data for."""
     if historical_floods.empty:
         st.info("No historical flood data available.")
         return
@@ -140,7 +148,7 @@ def display_historical_flood_data(historical_floods: pd.DataFrame):
     ).properties(
         width="container",
         height=500,
-        title=f"📈 Flood Warnings in {selected_location} Over the Years"
+        title=f"Flood Warnings in {selected_location} Over the Years"
     )
 
     st.altair_chart(chart, use_container_width=True)
@@ -154,8 +162,6 @@ if __name__ == "__main__":
         page_title="Flood Intel",
         page_icon="💧",
     )
-
-    st.title("🌊 Flood Warnings and History")
 
     st.header("🔴 Live Flood Warnings")
     flood_warnings = get_live_flood_warnings()
