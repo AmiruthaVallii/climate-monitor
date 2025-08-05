@@ -22,7 +22,7 @@ def get_conn():
     )
 
 
-def is_valid_email(email):
+def is_valid_email(email: str) -> bool:
     """Checks if user entered email is valid."""
     try:
         validate_email(email)
@@ -32,7 +32,7 @@ def is_valid_email(email):
         return False
 
 
-def is_valid_phone(phone):
+def is_valid_phone(phone: str) -> bool:
     """Checks if user entered phone number is valid."""
     try:
         parsed = phonenumbers.parse(phone, "GB")
@@ -44,7 +44,7 @@ def is_valid_phone(phone):
         return False
 
 
-def register_user(first_name, last_name, email, phone, username, password):  # pylint: disable=too-many-arguments, too-many-positional-arguments
+def register_user(first_name: str, last_name: str, email: str, phone: str, username: str, password: str) -> bool:  # pylint: disable=too-many-arguments, too-many-positional-arguments
     """Inserts user registeration details into users table in the database.
         - Hashes user entered password first for security."""
     hashed_pw = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
@@ -64,7 +64,7 @@ def register_user(first_name, last_name, email, phone, username, password):  # p
         return False
 
 
-def login_user(username, password):
+def login_user(username: str, password: str) -> bool:
     """Fetches hashed password from database and returns True
         if it matches the hashed user entered password."""
     try:
