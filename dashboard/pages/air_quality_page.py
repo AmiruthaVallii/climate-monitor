@@ -8,7 +8,6 @@ from dateutil.relativedelta import relativedelta
 import pandas as pd
 import streamlit as st
 import psycopg2
-from psycopg2.extras import RealDictCursor
 from dotenv import load_dotenv
 import altair as alt
 
@@ -37,7 +36,7 @@ def get_locations() -> pd.DataFrame:
     """Returns all locations"""
     with get_connection() as conn:
         logging.info("Connected to database.")
-        query = f"""
+        query = """
             SELECT location_id, location_name
             FROM locations;
         """
@@ -90,23 +89,24 @@ def get_live_readings(location_id: int) -> pd.DataFrame:
     return pd.read_sql_query(query, conn, params=(location_id,))
 
 
-def locations_sidebar(locations: pd.DataFrame) -> tuple[int, str]:
+def locations_sidebar(locations_df: pd.DataFrame) -> tuple[int, str]:
     """Create a locations sidebar and return the chosen location"""
 
     # location_names = locations["location_name"]
     with st.sidebar:
         choice = st.selectbox(
             "Choose a location:",
-            locations["location_name"]
+            locations_df["location_name"]
         )
 
-    location_id = locations[(
-        locations["location_name"] == choice)]["location_id"].item()
+    location_id = locations_df[(
+        locations_df["location_name"] == choice)]["location_id"].item()
 
     return location_id, choice
 
 
 def live_data_metrics(df: pd.DataFrame):
+    """Display the most recent air quality metrics on the dashboard"""
     st.header("Latest Air Quality Metrics (μg/m\u2083)")
     last = df.iloc[-1]
     second_last = df.iloc[-5]
@@ -132,18 +132,21 @@ def live_data_metrics(df: pd.DataFrame):
                       last["ammonia"]), 2),
                 border=True, delta_color="inverse")
     col2.metric("Ozone - O\u2083", last["ozone"],
-                round(float(second_last["ozone"] - last["ozone"]), 2), border=True, delta_color="inverse")
+                round(float(second_last["ozone"] - last["ozone"]), 2),
+                border=True, delta_color="inverse")
     col3.metric("Sulphur Dioxide - SO\u2082", last["sulphur_dioxide"],
                 round(float(second_last["sulphur_dioxide"] -
                       last["sulphur_dioxide"]), 2),
                 border=True, delta_color="inverse")
     col4.metric("Fine Particulates - PM\u2082.\u2085", last["pm2_5"],
-                round(float(second_last["pm2_5"] - last["pm2_5"]), 2), border=True, delta_color="inverse")
+                round(float(second_last["pm2_5"] - last["pm2_5"]), 2),
+                border=True, delta_color="inverse")
     col5.metric("Coarse Particulates - PM\u2081\u2080", last["pm10"],
-                round(float(second_last["pm10"] - last["pm10"]), 2), border=True, delta_color="inverse")
+                round(float(second_last["pm10"] - last["pm10"]), 2),
+                border=True, delta_color="inverse")
 
 
-def readings_select(df: pd.DataFrame) -> list:
+def readings_select() -> list:
     """Streamlit multiselect widget to choose which pollutant you want to filter by"""
     options = st.multiselect(
         "Choose pollutants to filter by:",
@@ -177,6 +180,7 @@ def date_select(graph_key: str) -> tuple:
 
 
 def time_group(graph_key: str) -> str:
+    """Use Streamlit Pills to allow the user to choose a time period to group by"""
     options = ["Hour", "Day", "Week", "Month", "Year"]
     selection = st.pills("Time period to group readings by:",
                          options,
@@ -214,7 +218,7 @@ def aqi_line_graph(df: pd.DataFrame) -> None:
         alt.Chart(df).mark_line(point=True).encode(
             x=alt.X("timestamp:T", title="Date"),
             y=alt.Y("air_quality_index:Q", title="Air Quality Index",
-                    scale=alt.Scale(zero=False)),
+                    scale=alt.Scale(domain=[1, 5])),
             tooltip=[
                 alt.Tooltip("timestamp:T", title="Date"),
                 alt.Tooltip("air_quality_index:Q", title="Air Quality Index")
@@ -270,14 +274,14 @@ if __name__ == "__main__":
     )
 
     locations = get_locations()
-    location_id, location_name = locations_sidebar(locations)
+    chosen_location_id, location_name = locations_sidebar(locations)
 
     st.title(f"😷 Air Quality in {location_name}")
     st.divider()
     st.markdown("####")
 
-    historical_data = get_historical_readings(location_id)
-    live_data = get_live_readings(location_id)
+    historical_data = get_historical_readings(chosen_location_id)
+    live_data = get_live_readings(chosen_location_id)
     all_data = pd.concat([historical_data, live_data])
     live_data_metrics(all_data)
     st.markdown("####")
@@ -288,6 +292,6 @@ if __name__ == "__main__":
 
     st.markdown("#####")
     st.subheader("Pollutants Readings")
-    pollutants = readings_select(all_data)
+    pollutants = readings_select()
     columns = ["timestamp"] + pollutants
     all_time_readings_line_graph(all_data[columns])
