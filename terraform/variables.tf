@@ -1,9 +1,11 @@
 variable "db_password" {
-  type = string
+  type      = string
+  sensitive = true
 }
 
 variable "open_weather_api_key" {
-  type = string
+  type      = string
+  sensitive = true
 }
 
 variable "current_weather_lambda_name" {
@@ -42,4 +44,19 @@ variable "location_assignment_lambda_name" {
 variable "current_reading_orchestrator_lambda_name" {
   type    = string
   default = "c18-climate-monitor-current-reading-orchestrator-lambda"
+}
+
+variable "new_location_orchestrator_lambda_name" {
+  type    = string
+  default = "c18-climate-monitor-new-location-orchestrator-lambda"
+}
+
+variable "my_aws_access_key_id" {
+  type      = string
+  sensitive = true
+}
+
+variable "my_aws_secret_access_key" {
+  type      = string
+  sensitive = true
 }
