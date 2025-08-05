@@ -53,6 +53,7 @@ def test_lambda_handler(mock_get_weather, mock_get_engine):
                                            engine,
                                            if_exists="append",
                                            index=False,
+                                           chunksize=5000,
                                            method="multi")
     assert ret == {
         "statusCode": 200,
