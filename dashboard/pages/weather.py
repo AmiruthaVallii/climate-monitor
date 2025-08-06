@@ -1,4 +1,4 @@
-# pylint: disabled=import-error
+# pylint: disable=import-error
 """Weather Dashboard"""
 import os
 import datetime as dt
