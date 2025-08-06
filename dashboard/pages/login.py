@@ -84,10 +84,11 @@ if __name__ == "__main__":
     load_dotenv()
     navbar()
     st.set_page_config(
-        page_title="Eco Intel",
+        page_title="EcoIntel",
         page_icon=".streamlit/favicon.png",
     )
     st.title("🔐 Login & Registration")
+    st.divider()
 
     auth_mode = st.radio("Choose action", ["Login", "Register"])
 
