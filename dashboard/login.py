@@ -6,6 +6,7 @@ import psycopg2
 from dotenv import load_dotenv
 from email_validator import validate_email, EmailNotValidError, EmailSyntaxError, EmailUndeliverableError
 import phonenumbers
+from modules.nav import navbar
 
 
 def get_conn():
@@ -81,7 +82,7 @@ def login_user(username: str, password: str) -> bool:
 if __name__ == "__main__":
 
     load_dotenv()
-
+    navbar()
     st.set_page_config(
         page_title="Eco Intel",
         page_icon=".streamlit/favicon.png",

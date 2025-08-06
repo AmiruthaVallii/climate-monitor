@@ -10,7 +10,7 @@ import streamlit as st
 import psycopg2
 from dotenv import load_dotenv
 import altair as alt
-
+from modules.nav import navbar
 
 load_dotenv()
 
@@ -277,17 +277,17 @@ def all_time_readings_line_graph(df: pd.DataFrame) -> None:
 
 
 if __name__ == "__main__":
-
+    navbar()
     st.set_page_config(
         page_title="Air Quality Intel",
-        page_icon="😷",
+        page_icon="🫁",
         layout="wide"
     )
 
     locations = get_locations()
     chosen_location_id, location_name = locations_sidebar(locations)
 
-    st.title(f"😷 Air Quality in {location_name}")
+    st.title(f"🫁 Air Quality in {location_name}")
     st.divider()
     st.markdown("####")
 

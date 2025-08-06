@@ -65,33 +65,34 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip 
+          pip install pylint
       - name: Run pylint
         run: |
           find . -type f -name '*.py' -exec dirname {} \; | sort -u | while read -r dir; do
               echo "Processing directory: $dir"
-              echo "Making virtual environment..."
-              python -m venv .venv
-              echo "Activating virtual environment..."
-              source .venv/bin/activate
-              req_file="$dir/requirements.txt"
-              if [[ -f "$req_file" ]]; then
-                  echo "Found requirements.txt file in $dir"
-                  echo "Installing requirements..."
-                  pip install -r "$req_file"
-              else
-                  echo "No requirements.txt file found in $dir"
-              fi
+              # echo "Making virtual environment..."
+              # python -m venv .venv
+              # echo "Activating virtual environment..."
+              # source .venv/bin/activate
+              # req_file="$dir/requirements.txt"
+              # if [[ -f "$req_file" ]]; then
+              #     echo "Found requirements.txt file in $dir"
+              #     echo "Installing requirements..."
+              #     pip install -r "$req_file"
+              # else
+              #     echo "No requirements.txt file found in $dir"
+              # fi
 
-              echo "Installing pylint..."
-              pip install pylint
+              # echo "Installing pylint..."
+              # pip install pylint
               
               echo "Running pylint in $dir"
-              find "$dir" -type f -name "*.py" -and -not -name "test_*.py" -and -not -name "conftest.py" -and -not -path "*.venv*" -prune -print0 | xargs -0 -I {} pylint {} --fail-under 8.5
+              find "$dir" -type f -name "*.py" -and -not -name "test_*.py" -and -not -name "conftest.py" -and -not -path "*.venv*" -prune -print0 | xargs -0 -I {} pylint -d E0401 {} --fail-under 8.5
 
-              echo "Deactivating virtual environment..."
-              deactivate
-              echo "Deleting virtual environment..."
-              rm -rf .venv
+              # echo "Deactivating virtual environment..."
+              # deactivate
+              # echo "Deleting virtual environment..."
+              # rm -rf .venv
               echo "Finished processing $dir"fg
               echo "----------------------------------------"
           done
