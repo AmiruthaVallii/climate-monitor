@@ -124,5 +124,6 @@ if __name__ == "__main__":
                 st.success(f"Welcome {inputted_username}!")
                 st.session_state["logged_in"] = True
                 st.session_state["username"] = inputted_username
+                st.switch_page("pages/profile.py")
             else:
                 st.error("Invalid username or password.")
