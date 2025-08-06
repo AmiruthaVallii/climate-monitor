@@ -14,10 +14,10 @@ def get_connection():
     """get rds connection"""
     load_dotenv()
     conn = psycopg2.connect(
-        host=os.environ["HOST"],
-        user=os.environ["USERNAME"],
-        password=os.environ["DBPASSWORD"],
-        dbname=os.environ["DBNAME"],
+        host=os.environ["DB_HOST"],
+        user=os.environ["DB_USERNAME"],
+        password=os.environ["DB_PASSWORD"],
+        dbname=os.environ["DB_NAME"],
         port=5432)
     return conn
 

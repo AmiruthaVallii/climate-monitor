@@ -24,7 +24,7 @@ def get_connection() -> psycopg2.extensions.connection:
     """Returns connection to RDS."""
     return psycopg2.connect(
         dbname=os.environ["DB_NAME"],
-        user=os.environ["DB_USER"],
+        user=os.environ["DB_USERNAME"],
         password=os.environ["DB_PASSWORD"],
         host=os.environ["DB_HOST"],
         port=os.environ["DB_PORT"]
