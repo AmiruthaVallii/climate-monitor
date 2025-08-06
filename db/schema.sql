@@ -164,3 +164,9 @@ CREATE TABLE "future_weather_prediction"(
     PRIMARY KEY (prediction_id),
     FOREIGN KEY (location_id) REFERENCES locations(location_id)
 );
+
+CREATE INDEX future_weather_prediction_location_id_index ON future_weather_prediction (location_id);
+CREATE INDEX historical_air_quality_location_id_index ON historical_air_quality (location_id);
+CREATE INDEX historical_weather_readings_location_id_index ON historical_weather_readings (location_id);
+CREATE INDEX air_quality_readings_location_id_index ON air_quality_readings (location_id);
+CREATE INDEX weather_readings_location_id_index ON weather_readings (location_id);
