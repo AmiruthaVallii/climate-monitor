@@ -130,7 +130,7 @@ def display_historical_flood_data(historical_floods: pd.DataFrame):
                                     == selected_location].copy()
     filtered_df["date"] = pd.to_datetime(filtered_df["date"])
 
-    # group by month and severity
+    # group by year and severity
     filtered_df["year"] = filtered_df["date"].dt.to_period(
         "Y").dt.to_timestamp()
     monthly_counts = (
