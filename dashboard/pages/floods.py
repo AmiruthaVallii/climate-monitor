@@ -92,6 +92,7 @@ def display_live_flood_warnings(live_warnings: pd.DataFrame):
             st.markdown(warning_html, unsafe_allow_html=True)
 
 
+@st.cache_data()
 def get_historical_flood_data() -> pd.DataFrame:
     """Fetches historical flood data from database."""
 
