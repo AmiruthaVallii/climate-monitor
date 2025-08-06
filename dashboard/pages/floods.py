@@ -131,20 +131,20 @@ def display_historical_flood_data(historical_floods: pd.DataFrame):
     filtered_df["date"] = pd.to_datetime(filtered_df["date"])
 
     # group by month and severity
-    filtered_df["month"] = filtered_df["date"].dt.to_period(
-        "M").dt.to_timestamp()
+    filtered_df["year"] = filtered_df["date"].dt.to_period(
+        "Y").dt.to_timestamp()
     monthly_counts = (
-        filtered_df.groupby(["month", "severity_name"])
+        filtered_df.groupby(["year", "severity_name"])
         .size()
         .reset_index(name="count")
-        .rename(columns={"severity_name": "Severity", "month": "Month"})
+        .rename(columns={"severity_name": "Severity", "year": "Year"})
     )
 
     chart = alt.Chart(monthly_counts).mark_line(point=True).encode(
-        x=alt.X("Month:T", title="Month"),
+        x=alt.X("Year:T", title="Year"),
         y=alt.Y("count:Q", title="Number of Flood Events"),
         color=alt.Color("Severity:N", title="Severity"),
-        tooltip=["Month:T", "Severity:N", "count"]
+        tooltip=["Year:T", "Severity:N", "count"]
     ).properties(
         width="container",
         height=500,
@@ -161,6 +161,7 @@ if __name__ == "__main__":
     st.set_page_config(
         page_title="Flood Intel",
         page_icon="💧",
+        layout="wide"
     )
 
     st.header("🔴 Live Flood Warnings")
