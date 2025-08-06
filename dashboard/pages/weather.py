@@ -377,7 +377,7 @@ def create_chart(data, title, y_axis_title, color_scheme="category10"):
         height=400
     ).resolve_scale(
         color='independent'
-    )
+    ).interactive()
 
     return chart
 
@@ -459,7 +459,7 @@ def main():
         "Wind Speed Throughout the Year",
         "Wind Speed (m/s)",
         'set3'
-    )
+    ).interactive()
     st.altair_chart(wind_chart, use_container_width=True)
     if not wind_data.empty:
         current_wind = wind_data[wind_data['type'].str.contains(

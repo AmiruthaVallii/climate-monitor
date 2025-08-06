@@ -236,7 +236,7 @@ def aqi_line_graph(df: pd.DataFrame) -> None:
         ).properties(
             width=1000,
             height=400
-        )
+        ).interactive()
     )
 
 
@@ -272,7 +272,7 @@ def all_time_readings_line_graph(df: pd.DataFrame) -> None:
         ).properties(
             width=1000,
             height=500
-        )
+        ).interactive()
     )
 
 
