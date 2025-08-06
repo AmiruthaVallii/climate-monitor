@@ -1,8 +1,9 @@
+# pylint: disabled=import-error
 """Weather Dashboard"""
-
+import os
 import datetime as dt
 import pandas as pd
-import os
+
 import psycopg2
 from dotenv import load_dotenv
 import altair as alt
@@ -23,7 +24,7 @@ def get_connection():
 
 @st.cache_data(ttl="300")
 def load_recent_weather(location_id):
-
+    """loads recent weather from rds"""
     conn = get_connection()
     cur = conn.cursor()
     try:
@@ -41,7 +42,7 @@ def load_recent_weather(location_id):
 
 @st.cache_data()
 def load_past_weather(location_id):
-
+    """loads past weather from rds"""
     conn = get_connection()
     cur = conn.cursor()
     try:
@@ -59,7 +60,7 @@ def load_past_weather(location_id):
 
 @st.cache_data()
 def load_future_weather(location_id):
-
+    """loads future weather from rds"""
     conn = get_connection()
     cur = conn.cursor()
     try:
@@ -78,7 +79,7 @@ def load_future_weather(location_id):
 
 @st.cache_data()
 def load_locations():
-
+    """loads locations from rds"""
     conn = get_connection()
     cur = conn.cursor()
     try:
@@ -258,8 +259,8 @@ def prepare_rainfall_data(selected_location_id):
     if datasets:
         combined_data = pd.concat(datasets, ignore_index=True)
         return combined_data
-    else:
-        return pd.DataFrame()
+
+    return pd.DataFrame()
 
 
 def prepare_wind_speed_data(selected_location_id):
@@ -341,8 +342,8 @@ def prepare_wind_speed_data(selected_location_id):
     if datasets:
         combined_data = pd.concat(datasets, ignore_index=True)
         return combined_data
-    else:
-        return pd.DataFrame()
+
+    return pd.DataFrame()
 
 
 def create_chart(data, title, y_axis_title, color_scheme="category10"):
@@ -382,7 +383,7 @@ def create_chart(data, title, y_axis_title, color_scheme="category10"):
 
 
 def main():
-
+    """main page"""
     st.set_page_config(
         page_title="Weather Dashboard",
         page_icon="🌦️",
