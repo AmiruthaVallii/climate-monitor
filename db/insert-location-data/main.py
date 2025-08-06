@@ -61,4 +61,7 @@ if __name__ == "__main__":
         )
         logging.info("Status code: %s",
                      response['ResponseMetadata']['HTTPStatusCode'])
-        sleep(20*60)  # Respect API limit
+        # Respect API limit
+        # Each invocation uses 1500 calls and there is a 5000/hour limit
+        # so call every 20 minutes for 4500 calls per hour
+        sleep(20*60)
