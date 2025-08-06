@@ -150,7 +150,7 @@ def display_historical_flood_data(historical_floods: pd.DataFrame):
         width="container",
         height=500,
         title=f"Flood Warnings in {selected_location} Over the Years"
-    )
+    ).interactive()
 
     st.altair_chart(chart, use_container_width=True)
 
