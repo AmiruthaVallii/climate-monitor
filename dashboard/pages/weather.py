@@ -8,6 +8,7 @@ import psycopg2
 from dotenv import load_dotenv
 import altair as alt
 import streamlit as st
+from modules.nav import navbar
 
 
 def get_connection():
@@ -475,4 +476,5 @@ def main():
 
 
 if __name__ == "__main__":
+    navbar()
     main()

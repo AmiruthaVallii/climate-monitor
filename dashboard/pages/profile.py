@@ -7,6 +7,7 @@ import pandas as pd
 import folium as fl
 from streamlit_folium import st_folium
 from login import get_conn  # pylint: disable=import-error
+from modules.nav import navbar
 
 
 def logout() -> None:
@@ -102,11 +103,13 @@ def update_location_assignment(user_id: int, location_id: int, record_exists: bo
 
 
 if __name__ == "__main__":
+    navbar()
     st.set_page_config(
         page_title="My Profile",
-        page_icon=".streamlit/favicon.png"
+        page_icon="👤",
+        layout="wide"
     )
-    st.title("My Profile")
+    st.title("👤 My Profile")
     locations = get_all_locations()
     if "user_id" not in st.session_state and st.session_state.get("logged_in"):
         my_conn = get_conn()

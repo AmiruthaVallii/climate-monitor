@@ -5,6 +5,7 @@ import psycopg2
 import pandas as pd
 from dotenv import load_dotenv
 import altair as alt
+from modules.nav import navbar
 
 
 def get_conn():
@@ -156,7 +157,7 @@ def display_historical_flood_data(historical_floods: pd.DataFrame):
 
 
 if __name__ == "__main__":
-
+    navbar()
     load_dotenv()
 
     st.set_page_config(
