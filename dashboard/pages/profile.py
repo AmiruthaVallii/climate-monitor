@@ -103,6 +103,8 @@ def update_location_assignment(user_id: int, location_id: int, record_exists: bo
 
 
 if __name__ == "__main__":
+    if not st.session_state.get("logged_in"):
+        st.switch_page("login.py")
     navbar()
     st.set_page_config(
         page_title="My Profile",
