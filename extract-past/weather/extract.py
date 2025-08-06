@@ -90,13 +90,16 @@ def lambda_handler(event: dict, context: Any) -> dict:  # pylint: disable=unused
         weather_df["location_id"] = event["location_id"]
         engine = get_engine()
         logging.info("Connected to the database.")
-        weather_df.to_sql("historical_weather_readings",
-                          engine,
-                          if_exists="append",
-                          index=False,
-                          chunksize=5000,
-                          method="multi")
-        logging.info("Historical weather data successfully inserted.")
+        try:
+            weather_df.to_sql("historical_weather_readings",
+                              engine,
+                              if_exists="append",
+                              index=False,
+                              chunksize=5000,
+                              method="multi")
+            logging.info("Historical weather data successfully inserted.")
+        finally:
+            engine.dispose()
         return {
             "statusCode": 200,
             "message": "Historical weather data successfully inserted."
