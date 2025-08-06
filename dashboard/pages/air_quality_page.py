@@ -244,18 +244,19 @@ def all_time_readings_line_graph(df: pd.DataFrame) -> None:
     time_period = time_group("pollutant_line_graph_time_period")
 
     df = df.groupby(
-        pd.Grouper(key="timestamp", freq=time_period)).max().reset_index()
+        pd.Grouper(key="timestamp", freq=time_period)).mean().reset_index()
     long_df = df.melt(id_vars=["timestamp"],
                       var_name="pollutant", value_name="value")
 
     st.altair_chart(
         alt.Chart(long_df).mark_line(point=True).encode(
             x=alt.X("timestamp:T", title="Date"),
-            y=alt.Y("value:Q", title="Max Value per Day (μg/m\u2083)"),
+            y=alt.Y("value:Q", title="Mean Value per Day (μg/m\u2083)"),
             color=alt.Color("pollutant:N", title="Pollutant"),
             tooltip=[
                 alt.Tooltip("timestamp:T", title="Date"),
-                alt.Tooltip("value:Q", title="Max Value per Day (μg/m\u2083)"),
+                alt.Tooltip(
+                    "value:Q", title="Mean Value per Day (μg/m\u2083)"),
                 alt.Tooltip("pollutant:N", title="Pollutant")
             ]
         ).properties(
@@ -268,8 +269,8 @@ def all_time_readings_line_graph(df: pd.DataFrame) -> None:
 if __name__ == "__main__":
 
     st.set_page_config(
-        page_title="Eco Intel",
-        page_icon=".streamlit/favicon.png",
+        page_title="Air Quality Intel",
+        page_icon="😷",
         layout="wide"
     )
 
