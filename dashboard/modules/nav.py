@@ -1,7 +1,9 @@
+"""Module for navigation related functions."""
 import streamlit as st
 
 
 def navbar():
+    """Navigation sidebar for the dashboard."""
     with st.sidebar:
         st.page_link('login.py', label='Login',
                      icon="🔐")
