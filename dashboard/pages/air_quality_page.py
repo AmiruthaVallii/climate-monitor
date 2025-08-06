@@ -34,65 +34,75 @@ def get_connection() -> psycopg2.extensions.connection:
 @st.cache_data
 def get_locations() -> pd.DataFrame:
     """Returns all locations"""
-    with get_connection() as conn:
-        logging.info("Connected to database.")
-        query = """
-            SELECT location_id, location_name
-            FROM locations;
-        """
-    return pd.read_sql_query(query, conn)
+    try:
+        with get_connection() as conn:
+            logging.info("Connected to database.")
+            query = """
+                SELECT location_id, location_name
+                FROM locations;
+            """
+        return pd.read_sql_query(query, conn)
+    except:
+        raise RuntimeError("Unable to connect to RDS")
 
 
 @st.cache_data
 def get_historical_readings(location_id: int) -> pd.DataFrame:
     """Returns all historical air quality data for a given location"""
-    with get_connection() as conn:
-        logging.info("Connected to database.")
-        query = f"""
-            SELECT
-                timestamp,
-                hourly_air_quality_index AS air_quality_index,
-                hourly_carbon_monoxide AS carbon_monoxide,
-                hourly_nitrogen_dioxide AS nitrogen_dioxide,
-                hourly_nitrogen_monoxide AS nitrogen_monoxide,
-                hourly_ammonia AS ammonia,
-                hourly_ozone AS ozone,
-                hourly_sulphur_dioxide AS sulphur_dioxide,
-                hourly_pm2_5 AS pm2_5,
-                hourly_pm10 AS pm10
-            FROM historical_air_quality
-            WHERE location_id = {location_id};
-        """
-    return pd.read_sql_query(query, conn)
+    try:
+        with get_connection() as conn:
+            logging.info("Connected to database.")
+            query = f"""
+                SELECT
+                    timestamp,
+                    hourly_air_quality_index AS air_quality_index,
+                    hourly_carbon_monoxide AS carbon_monoxide,
+                    hourly_nitrogen_dioxide AS nitrogen_dioxide,
+                    hourly_nitrogen_monoxide AS nitrogen_monoxide,
+                    hourly_ammonia AS ammonia,
+                    hourly_ozone AS ozone,
+                    hourly_sulphur_dioxide AS sulphur_dioxide,
+                    hourly_pm2_5 AS pm2_5,
+                    hourly_pm10 AS pm10
+                FROM historical_air_quality
+                WHERE location_id = {location_id};
+            """
+        return pd.read_sql_query(query, conn)
+    except:
+        logging.error("Unable to extract historical data from database")
+        raise RuntimeError("Unable to connect to RDS")
 
 
 @st.cache_data(ttl=900)
 def get_live_readings(location_id: int) -> pd.DataFrame:
     """Returns all live air quality data for a given location"""
-    with get_connection() as conn:
-        logging.info("Connected to database.")
-        query = """
-            SELECT
-                timestamp,
-                air_quality_index,
-                carbon_monoxide,
-                nitrogen_dioxide,
-                nitrogen_monoxide,
-                ammonia,
-                ozone,
-                sulphur_dioxide,
-                pm2_5,
-                pm10
-            FROM air_quality_readings
-            WHERE location_id = %s;
-        """
-    return pd.read_sql_query(query, conn, params=(location_id,))
+    try:
+        with get_connection() as conn:
+            logging.info("Connected to database.")
+            query = """
+                SELECT
+                    timestamp,
+                    air_quality_index,
+                    carbon_monoxide,
+                    nitrogen_dioxide,
+                    nitrogen_monoxide,
+                    ammonia,
+                    ozone,
+                    sulphur_dioxide,
+                    pm2_5,
+                    pm10
+                FROM air_quality_readings
+                WHERE location_id = %s;
+            """
+        return pd.read_sql_query(query, conn, params=(location_id,))
+    except:
+        logging.error("Unable to extract live data from database")
+        raise RuntimeError("Unable to connect to RDS")
 
 
 def locations_sidebar(locations_df: pd.DataFrame) -> tuple[int, str]:
     """Create a locations sidebar and return the chosen location"""
 
-    # location_names = locations["location_name"]
     with st.sidebar:
         choice = st.selectbox(
             "Choose a location:",
