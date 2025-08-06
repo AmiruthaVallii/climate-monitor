@@ -42,6 +42,7 @@ def is_valid_phone(phone: str) -> bool:
     except phonenumbers.NumberParseException as e:
         st.error(f"Phone number error: {str(e)}")
         return False
+    return True
 
 
 def register_user(first_name: str, last_name: str, email: str, phone: str, username: str, password: str) -> bool:  # pylint: disable=too-many-arguments, too-many-positional-arguments
