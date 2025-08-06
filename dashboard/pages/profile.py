@@ -74,16 +74,13 @@ def update_location_assignment(user_id: int, location_id: int, record_exists: bo
         cur = conn.cursor()
         if (not get_alerts) and (not get_summary):
             if not record_exists:
-                print(1)
                 return None
-            print(2)
             cur.execute(("DELETE FROM location_assignment "
                          "WHERE user_id=%s AND location_id=%s;"),
                         (user_id, location_id))
             conn.commit()
             return None
         if record_exists:
-            print(3)
             cur.execute(("UPDATE location_assignment "
                          "SET subscribe_to_alerts = %s, "
                          "subscribe_to_summary = %s "
@@ -92,7 +89,6 @@ def update_location_assignment(user_id: int, location_id: int, record_exists: bo
                         (get_alerts, get_summary, user_id, location_id))
             conn.commit()
             return None
-        print(4)
         cur.execute(("INSERT INTO location_assignment "
                      "(user_id, location_id, subscribe_to_alerts, subscribe_to_summary) "
                      "VALUES (%s, %s, %s, %s);"),
@@ -103,6 +99,10 @@ def update_location_assignment(user_id: int, location_id: int, record_exists: bo
 
 
 if __name__ == "__main__":
+    st.set_page_config(
+        page_title="My Profile",
+        page_icon=".streamlit/favicon.png"
+    )
     st.title("My Profile")
     locations = get_all_locations()
     if "user_id" not in st.session_state and st.session_state.get("logged_in"):
@@ -112,7 +112,6 @@ if __name__ == "__main__":
                 my_cur.execute("SELECT user_id FROM users WHERE username= %s",
                                (st.session_state["username"],))
                 data = my_cur.fetchone()
-            print(data)
             st.session_state["user_id"] = data[0]
         finally:
             my_conn.close()
@@ -129,8 +128,6 @@ if __name__ == "__main__":
         else:
             st.table(my_locations)
         st.header("Add a location")
-        # st.data_editor(get_all_locations(), hide_index=True, disabled=(
-        #     "location_id", "location_name", "latitude", "longitude"))
         col1, col2 = st.columns([3, 2])
         location_id = {}
         with col1:
@@ -146,7 +143,7 @@ if __name__ == "__main__":
                 ).add_to(my_map)
                 location_id[location["location_name"]
                             ] = location["location_id"]
-            out = st_folium(my_map)  # , height=500, width=350)
+            out = st_folium(my_map)
         with col2:
             with st.container(height=330):
                 st.subheader("Get notifications")
@@ -170,8 +167,6 @@ if __name__ == "__main__":
                             key=("get_notifications", "summary",
                                  location_id[out["last_object_clicked_popup"]])
                         )
-                        print(f"{alerts=}")
-                        print(f"{summary=}")
                         submitted = st.form_submit_button(
                             "Submit", on_click=update_location_assignment,
                             args=(st.session_state["user_id"],
