@@ -1,3 +1,4 @@
+# pylint: disable=import-error
 """Profile management page for the dashboard."""
 import streamlit as st
 import psycopg2
@@ -9,12 +10,14 @@ from login import get_conn  # pylint: disable=import-error
 
 
 def logout() -> None:
+    """Logout of dashboard."""
     st.session_state["logged_in"] = False
     del st.session_state["user_id"]
     del st.session_state["username"]
 
 
 def get_users_locations():
+    """Get the users locations."""
     conn = get_conn()
     try:
         with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
@@ -111,8 +114,8 @@ if __name__ == "__main__":
             with my_conn.cursor() as my_cur:
                 my_cur.execute("SELECT user_id FROM users WHERE username= %s",
                                (st.session_state["username"],))
-                data = my_cur.fetchone()
-            st.session_state["user_id"] = data[0]
+                user_data = my_cur.fetchone()
+            st.session_state["user_id"] = user_data[0]
         finally:
             my_conn.close()
     if not st.session_state.get("logged_in"):
@@ -129,7 +132,7 @@ if __name__ == "__main__":
             st.table(my_locations)
         st.header("Add a location")
         col1, col2 = st.columns([3, 2])
-        location_id = {}
+        location_id_map = {}
         with col1:
             my_map = fl.Map(location=[55.5, -4], zoom_start=4.6, max_bounds=True,
                             min_lat=-90, max_lat=90, min_lon=-180, max_lon=180)
@@ -141,8 +144,8 @@ if __name__ == "__main__":
                         location["location_name"], parse_html=False),
                     tooltip=location["location_name"]
                 ).add_to(my_map)
-                location_id[location["location_name"]
-                            ] = location["location_id"]
+                location_id_map[location["location_name"]
+                                ] = location["location_id"]
             out = st_folium(my_map)
         with col2:
             with st.container(height=330):
@@ -154,23 +157,23 @@ if __name__ == "__main__":
                                  height='stretch'):
                         la = get_location_assignment(
                             st.session_state["user_id"],
-                            location_id[out["last_object_clicked_popup"]]
+                            location_id_map[out["last_object_clicked_popup"]]
                         )
                         st.subheader(out["last_object_clicked_popup"])
                         alerts = st.checkbox(
                             "Alerts", value=la["subscribe_to_alerts"],
                             key=("get_notifications", "alerts",
-                                 location_id[out["last_object_clicked_popup"]])
+                                 location_id_map[out["last_object_clicked_popup"]])
                         )
                         summary = st.checkbox(
                             "Summary", value=la["subscribe_to_summary"],
                             key=("get_notifications", "summary",
-                                 location_id[out["last_object_clicked_popup"]])
+                                 location_id_map[out["last_object_clicked_popup"]])
                         )
                         submitted = st.form_submit_button(
                             "Submit", on_click=update_location_assignment,
                             args=(st.session_state["user_id"],
-                                  location_id[out["last_object_clicked_popup"]],
+                                  location_id_map[out["last_object_clicked_popup"]],
                                   la.get("record_exists", True)))
                         if submitted:
                             st.write("Submitted")
