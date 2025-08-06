@@ -1,3 +1,7 @@
+# pylint: disable=line-too-long
+
+"""Streamlit code to create a dashboard homepage"""
+
 import streamlit as st
 from modules.nav import navbar
 
@@ -10,7 +14,7 @@ if __name__ == "__main__":
         layout="wide"
     )
 
-    st.title(f"🌍 EcoIntel Climate Dashboard")
+    st.title("🌍 EcoIntel Climate Dashboard")
     st.divider()
 
     st.subheader("Welcome to the EcoIntel Climate Dashboard!")
