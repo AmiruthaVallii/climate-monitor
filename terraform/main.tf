@@ -754,7 +754,7 @@ resource "aws_ecs_task_definition" "streamlit_dashboard" {
   container_definitions = jsonencode([
     {
       name      = "streamlit"
-      image     = "129033205317.dkr.ecr.eu-west-2.amazonaws.com/c18-week-13-team-1-project-ecr@sha256:bc3471fbf81c0bcad6612d3abc88f456d91df3435bdaf5af7e9e99bf41ba43dd"
+      image     = "129033205317.dkr.ecr.eu-west-2.amazonaws.com/c18-climate-monitor-dashboard-ecr:latest"
       essential = true
       portMappings = [
         {
