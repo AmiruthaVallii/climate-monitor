@@ -1,4 +1,5 @@
 import os
+from typing import Any
 import logging
 import psycopg2
 from psycopg2.extras import RealDictCursor
@@ -83,44 +84,123 @@ def make_email_text(weather_data: dict) -> str:
     return message
 
 
+def get_email_html(weather_data: dict) -> str:
+    """Make a nicely formatted html email."""
+    message = """
+    <html lang="en">
+        <head>
+        <meta charset="UTF-8">
+        <title>Flood Warning</title>
+        <style>
+            body {
+            font-family: Arial, sans-serif;
+            background-color: #FDFDFD;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            }
+            .alert-box {
+            display: inline-block;
+            background-color: #FFF8F6;
+            color: #333;
+            padding: 20px;
+            border: 2px solid #CC0000;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(204, 0, 0, 0.1);
+            }
+            h1 {
+            color: #CC0000;
+            font-size: 22px;
+            margin: 0 0 10px;
+            }
+            .subtitle {
+            font-size: 17px;
+            font-weight: bold;
+            margin-bottom: 12px;
+            }
+            .location {
+            font-size: 15px;
+            margin-bottom: 10px;
+            }
+            .warning {
+            background-color: #FFE5E5;
+            padding: 8px;
+            border-left: 4px solid #CC0000;
+            margin-bottom: 12px;
+            font-size: 15px;
+            }
+            .timestamp {
+            font-size: 13px;
+            color: #555;
+            }
+        </style>
+        </head>
+        <body>
+        <div class="alert-box">
+            <h1>Daily summary for """ + weather_data["location_name"] + """</h1>
+            <div class="subtitle">Max temperature</div>
+            <div class="location">""" + warning[3] + """</div>
+            <div class="warning">""" + warning[4] + """</div>
+            <div class="timestamp">Last Updated: """ + str(warning[2]) + """</div>
+        </div>
+        </body>
+    </html>
+    """
+    return message
+
+
 def send_email(addresses: list[str], subject: str, text: str, ses) -> None:
-    try:
-        response = ses.send_email(
-            Destination={
-                'ToAddresses': addresses
-            },
-            Message={
-                'Body': {
-                    'Text': {
+    """Send the email to `addresses`."""
+    for address in addresses:
+        try:
+            response = ses.send_email(
+                Destination={
+                    'ToAddresses': [address,]
+                },
+                Message={
+                    'Body': {
+                        'Text': {
+                            'Charset': CHARSET,
+                            'Data': text,
+                        },
+                    },
+                    'Subject': {
                         'Charset': CHARSET,
-                        'Data': text,
+                        'Data': subject,
                     },
                 },
-                'Subject': {
-                    'Charset': CHARSET,
-                    'Data': subject,
-                },
-            },
-            Source=SENDER,
-        )
-    except ClientError as e:
-        logging.error(e.response['Error']['Message'])
-    else:
-        logging.info("Email sent! Message ID: %s", response['MessageId'])
+                Source=SENDER,
+            )
+        except ClientError as e:
+            logging.error(e.response['Error']['Message'])
+        else:
+            logging.info("Email sent! Message ID: %s", response['MessageId'])
 
 
-def handler(event: dict, context) -> None:
-    mailing_lists = get_mailing_lists()
-    summary = get_summary(tuple(mailing_lists.keys()))
-    client = boto3.client('ses', region_name=AWS_REGION)
-    for location_id, summary in summary.items():
-        message = make_email_text(summary)
-        send_email(
-            addresses=mailing_lists[location_id],
-            subject="Daily summary for " + summary["location_name"],
-            text=message,
-            ses=client
-        )
+def handler(event: dict, context: Any) -> None:
+    """AWS Lambda handler to send daily summary email."""
+    try:
+        mailing_lists = get_mailing_lists()
+        print(mailing_lists)
+        summary = get_summary(tuple(mailing_lists.keys()))
+        client = boto3.client('ses', region_name=AWS_REGION)
+        for location_id, summary in summary.items():
+            message = make_email_text(summary)
+            send_email(
+                addresses=mailing_lists[location_id],
+                subject="Daily summary for " + summary["location_name"],
+                text=message,
+                ses=client
+            )
+        return {
+            "statusCode": 200,
+            "message": "Sent emails."
+        }
+    except Exception as e:
+        logging.error("Error:", str(e))
+        raise e
 
 
 if __name__ == "__main__":
