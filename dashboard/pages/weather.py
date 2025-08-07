@@ -8,6 +8,9 @@ import psycopg2
 from dotenv import load_dotenv
 import altair as alt
 import streamlit as st
+from dateutil.relativedelta import relativedelta
+
+HISTORIC_DATA_START_DATE = dt.date(2020, 11, 27)
 
 
 def get_connection():
@@ -94,7 +97,27 @@ def load_locations():
         return locations_df
 
 
-def prepare_temperature_data(selected_location_id):
+def get_day_of_year_range(start_date, end_date):
+    """Get day of year range, handling cross-year periods"""
+    start_day = start_date.timetuple().tm_yday
+    end_day = end_date.timetuple().tm_yday
+
+    if start_date.year != end_date.year:
+
+        return start_day, end_day, True
+    else:
+        return start_day, end_day, False
+
+
+def filter_by_day_of_year(df, start_day, end_day, crosses_year=False):
+    '''Filter dataframe by day of year range'''
+    if crosses_year:
+        return df[(df["day_of_year"] >= start_day) | (df["day_of_year"] <= end_day)]
+    else:
+        return df[(df["day_of_year"] >= start_day) & (df["day_of_year"] <= end_day)]
+
+
+def prepare_temperature_data(selected_location_id: int, start_input: dt.date = None, end_input: dt.date = None):
     """Prepare temperature data for visualization"""
 
     recent_df = load_recent_weather(selected_location_id)
@@ -125,10 +148,16 @@ def prepare_temperature_data(selected_location_id):
 
     datasets = []
 
+    if start_input and end_input:
+        start, end = start_input, end_input
+    else:
+        start, end = (dt.date.today() -
+                      relativedelta(years=1), dt.date.today())
+    start_day, end_day, crosses_year = get_day_of_year_range(start, end)
     current_year = dt.datetime.now().year
     if not recent_filtered.empty:
-        current_temp = recent_filtered[recent_filtered['timestamp'].dt.year == current_year].copy(
-        )
+        current_temp = recent_filtered[(recent_filtered['timestamp'].dt.date >= start) & (
+            recent_filtered['timestamp'].dt.date <= end)].copy()
         if not current_temp.empty:
             current_temp_data = current_temp.groupby(
                 'day_of_year')['current_temperature'].mean().reset_index()
@@ -138,7 +167,7 @@ def prepare_temperature_data(selected_location_id):
                 current_temp_data[['day_of_year', 'value', 'type']])
 
     if not historical_filtered.empty:
-        historical_current_year = historical_filtered[historical_filtered['year'] == current_year].copy(
+        historical_current_year = historical_filtered[(historical_filtered['timestamp'].dt.date >= start) & (historical_filtered['timestamp'].dt.date <= end)].copy(
         )
         if not historical_current_year.empty:
             hist_current_temp = historical_current_year.groupby(
@@ -151,8 +180,9 @@ def prepare_temperature_data(selected_location_id):
     if not historical_filtered.empty:
         baseline_data = historical_filtered[
             (historical_filtered['year'] >= 1940) &
-            (historical_filtered['year'] <= 1960)
-        ].copy()
+            (historical_filtered['year'] <= 1960)].copy()
+        baseline_data = filter_by_day_of_year(
+            baseline_data, start_day, end_day, crosses_year)
         if not baseline_data.empty:
             baseline_temp = baseline_data.groupby(
                 'day_of_year')['hourly_temperature'].mean().reset_index()
@@ -161,8 +191,10 @@ def prepare_temperature_data(selected_location_id):
             datasets.append(baseline_temp[['day_of_year', 'value', 'type']])
 
     if not future_filtered.empty:
-        future_2045 = future_filtered[future_filtered['date'].dt.year == 2045].copy(
+        future_2045 = future_filtered[(future_filtered['date'].dt.year == 2045)].copy(
         )
+        future_2045 = filter_by_day_of_year(
+            future_2045, start_day, end_day, crosses_year)
         if not future_2045.empty:
             future_temp = future_2045.groupby(
                 'day_of_year')['mean_temperature'].mean().reset_index()
@@ -177,7 +209,7 @@ def prepare_temperature_data(selected_location_id):
         return pd.DataFrame()
 
 
-def prepare_rainfall_data(selected_location_id):
+def prepare_rainfall_data(selected_location_id, start_input: dt.date = None, end_input: dt.date = None):
     """Prepare rainfall data for visualization"""
 
     recent_df = load_recent_weather(selected_location_id)
@@ -207,11 +239,17 @@ def prepare_rainfall_data(selected_location_id):
         future_filtered['day_of_year'] = future_filtered['date'].dt.dayofyear
 
     datasets = []
+    if start_input and end_input:
+        start, end = start_input, end_input
+    else:
+        start, end = (dt.date.today() -
+                      relativedelta(years=1), dt.date.today())
+    start_day, end_day, crosses_year = get_day_of_year_range(start, end)
     current_year = dt.datetime.now().year
 
     if not recent_filtered.empty:
-        current_rain = recent_filtered[recent_filtered['timestamp'].dt.year == current_year].copy(
-        )
+        current_rain = recent_filtered[(recent_filtered['timestamp'].dt.date >= start) & (
+            recent_filtered['timestamp'].dt.date <= end)].copy()
         if not current_rain.empty:
             current_rain_data = current_rain.groupby(
                 'day_of_year')['rainfall_last_15_mins'].sum().reset_index()
@@ -221,7 +259,7 @@ def prepare_rainfall_data(selected_location_id):
                 current_rain_data[['day_of_year', 'value', 'type']])
 
     if not historical_filtered.empty:
-        historical_current_year = historical_filtered[historical_filtered['year'] == current_year].copy(
+        historical_current_year = historical_filtered[(historical_filtered['timestamp'].dt.date >= start) & (historical_filtered['timestamp'].dt.date <= end)].copy(
         )
         if not historical_current_year.empty:
             hist_current_rain = historical_current_year.groupby(
@@ -236,6 +274,8 @@ def prepare_rainfall_data(selected_location_id):
                 (historical_filtered['year'] >= 1940) &
                 (historical_filtered['year'] <= 1960)
             ].copy()
+            baseline_data = filter_by_day_of_year(
+                baseline_data, start_day, end_day, crosses_year)
             if not baseline_data.empty:
                 daily = baseline_data.groupby(['year', 'day_of_year'])[
                     'hourly_rainfall'].sum().reset_index()
@@ -249,6 +289,8 @@ def prepare_rainfall_data(selected_location_id):
     if not future_filtered.empty:
         future_2045 = future_filtered[future_filtered['date'].dt.year == 2045].copy(
         )
+        future_2045 = filter_by_day_of_year(
+            future_2045, start_day, end_day, crosses_year)
         if not future_2045.empty:
             future_rain = future_2045.groupby(
                 'day_of_year')['total_rainfall'].sum().reset_index()
@@ -263,7 +305,7 @@ def prepare_rainfall_data(selected_location_id):
     return pd.DataFrame()
 
 
-def prepare_wind_speed_data(selected_location_id):
+def prepare_wind_speed_data(selected_location_id, start_input: dt.date = None, end_input: dt.date = None):
     """Prepare wind speed data for visualization"""
 
     recent_df = load_recent_weather(selected_location_id)
@@ -293,11 +335,17 @@ def prepare_wind_speed_data(selected_location_id):
         future_filtered['day_of_year'] = future_filtered['date'].dt.dayofyear
 
     datasets = []
+    if start_input and end_input:
+        start, end = start_input, end_input
+    else:
+        start, end = (dt.date.today() -
+                      relativedelta(years=1), dt.date.today())
+    start_day, end_day, crosses_year = get_day_of_year_range(start, end)
     current_year = dt.datetime.now().year
 
     if not recent_filtered.empty:
-        current_wind = recent_filtered[recent_filtered['timestamp'].dt.year == current_year].copy(
-        )
+        current_wind = recent_filtered[(recent_filtered['timestamp'].dt.date >= start) & (
+            recent_filtered['timestamp'].dt.date <= end)].copy()
         if not current_wind.empty:
             current_wind_data = current_wind.groupby(
                 'day_of_year')['wind_speed'].mean().reset_index()
@@ -307,7 +355,7 @@ def prepare_wind_speed_data(selected_location_id):
                 current_wind_data[['day_of_year', 'value', 'type']])
 
     if not historical_filtered.empty:
-        historical_current_year = historical_filtered[historical_filtered['year'] == current_year].copy(
+        historical_current_year = historical_filtered[(historical_filtered['timestamp'].dt.date >= start) & (historical_filtered['timestamp'].dt.date <= end)].copy(
         )
         if not historical_current_year.empty:
             hist_current_wind = historical_current_year.groupby(
@@ -322,6 +370,9 @@ def prepare_wind_speed_data(selected_location_id):
             (historical_filtered['year'] >= 1940) &
             (historical_filtered['year'] <= 1960)
         ].copy()
+        baseline_data = filter_by_day_of_year(
+            baseline_data, start_day, end_day, crosses_year)
+
         if not baseline_data.empty:
             baseline_wind = baseline_data.groupby(
                 'day_of_year')['hourly_wind_speed'].mean().reset_index()
@@ -332,6 +383,8 @@ def prepare_wind_speed_data(selected_location_id):
     if not future_filtered.empty:
         future_2045 = future_filtered[future_filtered['date'].dt.year == 2045].copy(
         )
+        future_2045 = filter_by_day_of_year(
+            future_2045, start_day, end_day, crosses_year)
         if not future_2045.empty:
             future_wind = future_2045.groupby(
                 'day_of_year')['mean_wind_speed'].mean().reset_index()
@@ -382,6 +435,18 @@ def create_chart(data, title, y_axis_title, color_scheme="category10"):
     return chart
 
 
+def date_select(graph_key: str) -> tuple:
+    """Retrieve a date period from the user"""
+    return st.date_input(
+        "Choose a date period:",
+        (dt.date.today() - relativedelta(years=1), dt.date.today()),
+        min_value=HISTORIC_DATA_START_DATE,
+        max_value=dt.date.today() + relativedelta(days=1),
+        format="DD/MM/YYYY",
+        key=graph_key
+    )
+
+
 def main():
     """main page"""
     st.set_page_config(
@@ -402,18 +467,22 @@ def main():
 
     location_options = dict(
         zip(locations_df['location_name'], locations_df['location_id']))
+
     selected_location_name = st.selectbox(
-        "Select a location:",
+        "Choose a location:",
         options=list(location_options.keys())
     )
     selected_location_id = location_options[selected_location_name]
 
     st.subheader(f"Weather data for: {selected_location_name}")
-
-    current_day = dt.date.today().timetuple().tm_yday
+    dates = date_select("user date input")
+    if len(dates) != 2:
+        st.stop()
+    start_date, end_date = dates
     current_year = dt.date.today().year
     st.subheader("🌡️ Temperature Comparison")
-    temp_data = prepare_temperature_data(selected_location_id)
+    temp_data = prepare_temperature_data(
+        selected_location_id, start_date, end_date)
     temp_chart = create_chart(
         temp_data,
         "Temperature Throughout the Year",
@@ -421,17 +490,18 @@ def main():
         'set1'
     )
     st.altair_chart(temp_chart, use_container_width=True)
-
+    current_temp_data = temp_data[temp_data['type']
+                                  == f'{current_year} Temperature']
+    historical_temp_data = temp_data[temp_data['type'] == 'Average 1940-1960']
     if not temp_data.empty:
-        current_temp_avg = temp_data[temp_data['type'].str.contains(
-            str(current_year))]['value'].mean()
-        baseline_temp_avg = temp_data[(temp_data['type'] == 'Average 1940-1960') & (
-            temp_data['day_of_year'] <= current_day)]['value'].mean()
+        current_temp_avg = current_temp_data['value'].mean()
+        baseline_temp_avg = historical_temp_data['value'].mean()
         st.metric(
             "Avg Temperature Difference (Current vs 1940-60)",
             f"{current_temp_avg - baseline_temp_avg:.1f}°C")
     st.subheader("🌧️ Rainfall Comparison")
-    rain_data = prepare_rainfall_data(selected_location_id)
+    rain_data = prepare_rainfall_data(
+        selected_location_id, start_date, end_date)
     rain_chart = create_chart(
         rain_data,
         "Rainfall Throughout the Year",
@@ -439,12 +509,12 @@ def main():
         'set2'
     )
     st.altair_chart(rain_chart, use_container_width=True)
+    current_rain_data = rain_data[rain_data['type']
+                                  == f'{current_year} Rainfall']
+    historical_rain_data = rain_data[rain_data['type'] == 'Average 1940-1960']
     if not rain_data.empty:
-        current_rain = rain_data[rain_data['type'].str.contains(
-            str(current_year))]['value'].sum()
-        baseline_rain = rain_data[(rain_data['type']
-                                  == 'Average 1940-1960') & (
-            rain_data['day_of_year'] <= current_day)]['value'].sum()
+        current_rain = current_rain_data['value'].mean()
+        baseline_rain = historical_rain_data['value'].mean()
         if baseline_rain > 0:
             rain_change = (
                 (current_rain - baseline_rain) / baseline_rain) * 100
@@ -453,7 +523,8 @@ def main():
                 f"{rain_change:.1f}%"
             )
     st.subheader("💨 Wind Speed Comparison")
-    wind_data = prepare_wind_speed_data(selected_location_id)
+    wind_data = prepare_wind_speed_data(
+        selected_location_id, start_date, end_date)
     wind_chart = create_chart(
         wind_data,
         "Wind Speed Throughout the Year",
@@ -461,12 +532,12 @@ def main():
         'set3'
     ).interactive()
     st.altair_chart(wind_chart, use_container_width=True)
+    current_wind_data = wind_data[wind_data['type']
+                                  == f'{current_year} Wind Speed']
+    historical_wind_data = wind_data[wind_data['type'] == 'Average 1940-1960']
     if not wind_data.empty:
-        current_wind = wind_data[wind_data['type'].str.contains(
-            str(current_year))]['value'].mean()
-        baseline_wind = wind_data[(wind_data['type']
-                                  == 'Average 1940-1960') & (
-            wind_data['day_of_year'] <= current_day)]['value'].mean()
+        current_wind = current_wind_data['value'].mean()
+        baseline_wind = historical_wind_data['value'].mean()
         wind_diff = current_wind - baseline_wind
         st.metric(
             "Wind Speed Difference (Current vs 1940-60)",
