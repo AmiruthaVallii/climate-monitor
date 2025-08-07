@@ -767,7 +767,8 @@ resource "aws_ecs_task_definition" "streamlit_dashboard" {
         { name = "DB_HOST", value = aws_db_instance.climate.address },
         { name = "DB_NAME", value = "postgres" },
         { name = "DB_USERNAME", value = "climate" },
-        { name = "DB_PASSWORD", value = var.db_password }
+        { name = "DB_PASSWORD", value = var.db_password },
+        { name = "DB_PORT", value = 5432}
       ],
       logConfiguration = {
       logDriver = "awslogs",
