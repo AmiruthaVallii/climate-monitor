@@ -764,9 +764,9 @@ resource "aws_ecs_task_definition" "streamlit_dashboard" {
         }
       ],
       environment = [
-        { name = "DB_SERVER", value = var.db_server },
-        { name = "DB_NAME", value = var.db_name },
-        { name = "DB_USERNAME", value = var.db_username },
+        { name = "DB_SERVER", value = aws_db_instance.climate.address },
+        { name = "DB_NAME", value = "postgres" },
+        { name = "DB_USERNAME", value = "climate" },
         { name = "DB_PASSWORD", value = var.db_password }
       ],
       logConfiguration = {
