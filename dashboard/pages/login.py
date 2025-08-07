@@ -1,12 +1,18 @@
 """Login/ registeration page of the climate monitor dashboard"""
 import os
+import logging
 import streamlit as st
 import bcrypt
 import psycopg2
+import boto3
+import botocore
 from dotenv import load_dotenv
 from email_validator import validate_email, EmailNotValidError, EmailSyntaxError, EmailUndeliverableError
 import phonenumbers
 from modules.nav import navbar
+
+logging.basicConfig(
+    format="%(levelname)s | %(asctime)s | %(message)s", level=logging.INFO)
 
 
 def get_conn():
@@ -48,6 +54,10 @@ def register_user(first_name: str, last_name: str, email: str, phone: str, usern
         - Hashes user entered password first for security."""
     hashed_pw = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
     try:
+        ses = boto3.client('ses')
+        response = ses.verify_email_identity(
+            EmailAddress=email
+        )
         with get_conn() as conn:
             with conn.cursor() as cur:
                 cur.execute("""
@@ -56,6 +66,9 @@ def register_user(first_name: str, last_name: str, email: str, phone: str, usern
                     VALUES (%s, %s, %s, %s, %s, %s)
                 """, (first_name, last_name, email, phone, username, hashed_pw))
         return True
+    except botocore.exceptions.ClientError as e:
+        logging.error("Error verifying email: %s, Response: %s",
+                      str(e), response)
     except psycopg2.errors.UniqueViolation:
         return False
     except Exception as e:
