@@ -6,7 +6,7 @@ import psycopg2.extras
 import pandas as pd
 import folium as fl
 from streamlit_folium import st_folium
-from login import get_conn  # pylint: disable=import-error
+from pages.login import get_conn  # pylint: disable=import-error
 from modules.nav import navbar
 
 
@@ -104,7 +104,7 @@ def update_location_assignment(user_id: int, location_id: int, record_exists: bo
 
 if __name__ == "__main__":
     if not st.session_state.get("logged_in"):
-        st.switch_page("login.py")
+        st.switch_page("pages/login.py")
     navbar()
     st.set_page_config(
         page_title="My Profile",
@@ -112,6 +112,8 @@ if __name__ == "__main__":
         layout="wide"
     )
     st.title("👤 My Profile")
+    st.divider()
+
     locations = get_all_locations()
     if "user_id" not in st.session_state and st.session_state.get("logged_in"):
         my_conn = get_conn()
