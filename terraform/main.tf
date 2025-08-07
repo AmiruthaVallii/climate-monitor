@@ -671,3 +671,132 @@ resource "aws_scheduler_schedule" "current_reading_orchestrator_scheduler" {
     role_arn = aws_iam_role.lambda_scheduler.arn
   }
 }
+
+
+# ECS Task Execution Role
+
+resource "aws_iam_role" "ecs_task_execution_role" {
+  name = "c18-climate-monitor-ecsTaskExecutionRole"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [{
+      Effect = "Allow",
+      Principal = {
+        Service = "ecs-tasks.amazonaws.com"
+      },
+      Action = "sts:AssumeRole"
+    }]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "ecs_execution_policy" {
+  role       = aws_iam_role.ecs_task_execution_role.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+}
+
+
+# Security Group
+
+
+resource "aws_security_group" "streamlit_sg" {
+  name        = "c18-climate-monitor-streamlit-sg"
+  description = "Allow inbound traffic to Streamlit dashboard"
+  vpc_id      = "vpc-0adcb6a62ca552c01"
+
+  ingress {
+    description = "Allow traffic on port 8501"
+    from_port   = 8501
+    to_port     = 8501
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "climate-monitor-dashboard-sg"
+  }
+}
+
+
+# ECS Cluster
+
+data "aws_ecs_cluster" "existing" {
+  cluster_name = "c18-ecs-cluster"
+}
+
+# Cloudwatch
+
+resource "aws_cloudwatch_log_group" "streamlit_logs" {
+  name              = "/ecs/c18-climate-monitor-dashboard"
+  retention_in_days = 7
+}
+
+
+
+# ECS Task Definition
+
+resource "aws_ecs_task_definition" "streamlit_dashboard" {
+  family                   = "streamlit-dashboard-task"
+  requires_compatibilities = ["FARGATE"]
+  network_mode             = "awsvpc"
+  cpu                      = "512"
+  memory                   = "1024"
+  execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
+  task_role_arn            = aws_iam_role.ecs_task_execution_role.arn
+
+  container_definitions = jsonencode([
+    {
+      name      = "streamlit"
+      image     = "129033205317.dkr.ecr.eu-west-2.amazonaws.com/c18-climate-monitor-dashboard-ecr:latest"
+      essential = true
+      portMappings = [
+        {
+          containerPort = 8501
+          hostPort      = 8501
+          protocol      = "tcp"
+        }
+      ],
+      environment = [
+        { name = "DB_SERVER", value = aws_db_instance.climate.address },
+        { name = "DB_NAME", value = "postgres" },
+        { name = "DB_USERNAME", value = "climate" },
+        { name = "DB_PASSWORD", value = var.db_password }
+      ],
+      logConfiguration = {
+      logDriver = "awslogs",
+      options = {
+        awslogs-group         = "/ecs/c18-climate-monitor-dashboard"
+        awslogs-region        = "eu-west-2"
+        awslogs-stream-prefix = "c18-climate-monitor"
+      }
+    }
+    }
+  ])
+}
+
+# ECS Fargate Service
+
+resource "aws_ecs_service" "streamlit_service" {
+  name            = "c18-climate-monitor-dashboard-service"
+  cluster         = data.aws_ecs_cluster.existing.id
+  launch_type     = "FARGATE"
+  task_definition = aws_ecs_task_definition.streamlit_dashboard.arn
+  desired_count   = 1
+
+  network_configuration {
+    subnets         = ["subnet-0679d4b1f9e7839ef", "subnet-0f10662561eade8c3", "subnet-0aed07ac008a10da9"]
+    security_groups = [aws_security_group.streamlit_sg.id]
+    assign_public_ip = true
+  }
+
+  depends_on = [
+    aws_iam_role_policy_attachment.ecs_execution_policy
+  ]
+}
