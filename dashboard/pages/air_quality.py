@@ -12,6 +12,8 @@ from dotenv import load_dotenv
 import altair as alt
 from modules.nav import navbar
 
+READINGS_IN_A_DAY = -96
+
 load_dotenv()
 
 logging.basicConfig(level=logging.INFO,
@@ -120,7 +122,7 @@ def live_data_metrics(df: pd.DataFrame):
     """Display the most recent air quality metrics on the dashboard"""
     st.header("Latest Air Quality Metrics (μg/m\u2083)")
     last = df.iloc[-1]
-    second_last = df.iloc[-5]
+    second_last = df.iloc[READINGS_IN_A_DAY]
 
     col1, col2, col3, col4, col5 = st.columns(5)
     col1.metric("Air Quality Index", last["air_quality_index"],
@@ -288,7 +290,7 @@ if __name__ == "__main__":
     locations = get_locations()
     chosen_location_id, location_name = locations_sidebar(locations)
 
-    st.title(f"🫁 Air Quality Dashboard for {location_name}")
+    st.title(f"🫁 Air Quality for {location_name}")
     st.divider()
 
     historical_data = get_historical_readings(chosen_location_id)

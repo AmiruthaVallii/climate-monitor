@@ -34,7 +34,7 @@ if __name__ == "__main__":
     st.header("🌦️ Weather Dashboard")
     st.markdown(
         """
-        This dashboard compares this years weather readings with historic data (**1940**-**1960**) and future weather predictions (**2045**).
+        This dashboard compares this year's weather readings with historic data (**1940**-**1960**) and future weather predictions (until **2045**).
 
         It explores the change in **temperature**, **rainfall**, and **wind**, and how this is expected to continue into the future.
         """)
@@ -69,7 +69,7 @@ if __name__ == "__main__":
         The _Profile_ page allows you to browse the tracked locations and choose to sign up for:
 
         - Alerts
-          - Be notified via SMS whenever there are any flood alerts, if air quality index has reached 4/5 or greater, or if any weather values have broken a record
+          - Be notified via email whenever there are any flood alerts, if air quality index has reached 4/5 or greater, or if any weather values reached a certain threshold
         - Daily Summary
-          - Receive an email at the end of each day which summarises all of the data from that day, and how it compares to that day in previous years
+          - Receive an email at the end of each day which summarises all of the data from that day
         """)

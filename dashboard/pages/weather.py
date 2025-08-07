@@ -391,7 +391,7 @@ def main():
         layout="wide"
     )
 
-    st.title("🌦️ Weather Dashboard")
+    st.title("🌦️ Weather")
     st.divider()
 
     locations_df = load_locations()
