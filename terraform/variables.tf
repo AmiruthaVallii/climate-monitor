@@ -1,8 +1,3 @@
-variable "db_password" {
-  type      = string
-  sensitive = true
-}
-
 variable "open_weather_api_key" {
   type      = string
   sensitive = true
@@ -57,6 +52,27 @@ variable "my_aws_access_key_id" {
 }
 
 variable "my_aws_secret_access_key" {
+  type      = string
+  sensitive = true
+}
+
+variable "db_server" {
+  description = "SQL Server host"
+  type        = string
+}
+
+variable "db_name" {
+  description = "Name of the SQL Server database"
+  type        = string
+}
+
+variable "db_username" {
+  description = "SQL Server username"
+  type        = string
+  sensitive   = true
+}
+
+variable "db_password" {
   type      = string
   sensitive = true
 }
