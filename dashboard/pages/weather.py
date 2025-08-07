@@ -386,14 +386,13 @@ def create_chart(data, title, y_axis_title, color_scheme="category10"):
 def main():
     """main page"""
     st.set_page_config(
-        page_title="Weather Dashboard",
+        page_title="Weather Intel",
         page_icon="🌦️",
         layout="wide"
     )
 
     st.title("🌦️ Weather Dashboard")
-    st.markdown(
-        "Compare current year weather with historical baseline (1940-1960) and future predictions (2045)")
+    st.divider()
 
     locations_df = load_locations()
 
@@ -403,13 +402,19 @@ def main():
 
     location_options = dict(
         zip(locations_df['location_name'], locations_df['location_id']))
-    selected_location_name = st.selectbox(
-        "Select a location:",
-        options=list(location_options.keys())
-    )
+
+    with st.sidebar:
+        st.divider()
+        selected_location_name = st.selectbox(
+            "📍 Select Location:",
+            options=list(location_options.keys())
+        )
     selected_location_id = location_options[selected_location_name]
 
-    st.subheader(f"Weather data for: {selected_location_name}")
+    st.header(f"Weather Data for {selected_location_name}:")
+
+    st.markdown(
+        "Compare current year weather with historical baseline (1940-1960) and future predictions (2045)")
 
     current_day = dt.date.today().timetuple().tm_yday
     current_year = dt.date.today().year

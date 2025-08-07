@@ -126,7 +126,10 @@ def display_historical_flood_data(historical_floods: pd.DataFrame):
         return
 
     location_choices = sorted(historical_floods['location'].unique())
-    selected_location = st.selectbox("📍 Select Location", location_choices)
+    with st.sidebar:
+        st.divider()
+        selected_location = st.selectbox(
+            "📍 Select Location:", location_choices)
 
     filtered_df = historical_floods[historical_floods["location"]
                                     == selected_location].copy()
@@ -166,9 +169,13 @@ if __name__ == "__main__":
         layout="wide"
     )
 
-    st.header("🔴 Live Flood Warnings")
+    st.title("🔴 Live Flood Warnings")
+    st.divider()
+
     flood_warnings = get_live_flood_warnings()
     display_live_flood_warnings(flood_warnings)
+
+    st.markdown("####")
 
     st.header("📜 Browse Historical Flood Data")
     historical_floods = get_historical_flood_data()

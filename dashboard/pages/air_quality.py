@@ -104,8 +104,9 @@ def locations_sidebar(locations_df: pd.DataFrame) -> tuple[int, str]:
     """Create a locations sidebar and return the chosen location"""
 
     with st.sidebar:
+        st.divider()
         choice = st.selectbox(
-            "Choose a location:",
+            "📍 Select Location:",
             locations_df["location_name"]
         )
 
@@ -287,9 +288,8 @@ if __name__ == "__main__":
     locations = get_locations()
     chosen_location_id, location_name = locations_sidebar(locations)
 
-    st.title(f"🫁 Air Quality in {location_name}")
+    st.title(f"🫁 Air Quality Dashboard for {location_name}")
     st.divider()
-    st.markdown("####")
 
     historical_data = get_historical_readings(chosen_location_id)
     live_data = get_live_readings(chosen_location_id)
@@ -297,7 +297,7 @@ if __name__ == "__main__":
     live_data_metrics(all_data)
     st.markdown("####")
 
-    st.header("Readings over Time")
+    st.header("Historical Readings")
     st.subheader("Air Quality Index Readings")
     aqi_line_graph(all_data)
 
