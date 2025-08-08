@@ -332,7 +332,7 @@ def check_weather_alert_needs_to_be_sent(alert):
 
 def send_weather_notifications(weather_alerts: list, aqi_alerts: list) -> None:
     """Send weather alerts to users"""
-    client = boto3.client('ses')
+    client = boto3.client('ses', region_name=os.getenv("AWS_REGION"))
     alerts = weather_alerts + aqi_alerts
 
     if not alerts:
