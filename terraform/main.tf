@@ -874,7 +874,7 @@ resource "aws_lambda_function" "daily_summary" {
     variables = {
       DB_HOST     = aws_db_instance.climate.address
       DB_PORT     = 5432
-      DB_USER     = "climate"
+      DB_USERNAME     = "climate"
       DB_PASSWORD = var.db_password
       DB_NAME     = "postgres"
     }
