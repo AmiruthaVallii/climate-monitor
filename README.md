@@ -92,7 +92,7 @@ A file which makes a get request to a government API that lists all the English 
 We collect all of them and insert them into our flood_areas table in our database.
 ##  db/seed_flood_area_assignment.py
 A file which loads all locations from the RDS and then makes a get request to a government API which returns the flood area codes for a given location (lat,lon). It finds the flood `area_codes` for every location and then matches these with `flood_area_code_ids`. It then inserts these assignments into the `flood_area_assignment` table.
-##  db/location_assignment_handler.py
+##  `db/location_assignment_handler.py`
 A handler function which assign flood areas based on a given location, using numerous functions from seed_flood_area_assignment.py
 ## db/insert-location-data/main.py
 A file which invokes the new-location-orchestrator lambda. This lambda assigns flood areas, gets historical and future data for weather and historical air quality data for a new location. This file is used to get this data for the initial seeded location and is only used on set up.
