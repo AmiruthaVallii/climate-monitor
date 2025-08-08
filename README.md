@@ -26,7 +26,7 @@ Inside the terraform folder, main.tf provides all the resources to host our pipe
 
 
 Once these resources are provisioned we can configure our RDS. Connect to the RDS using the password you set in variables.tf,
-and the dbname and username defined in the RDS definition in main.tf, and finally the host address which will be found on the AWS console. Then enter the db directory and enter these variabls into a .env file. Create a venv and install requirements.txt.
+and the dbname and username defined in the RDS definition in main.tf, and finally the host address which will be found on the AWS console. Then enter the db directory and enter these variables into a .env file. Create a venv and install requirements.txt.
 Next run:
 ```
 psql -h [host address] -U [username] -d [dbname] -p 5432 -f schema.sql
