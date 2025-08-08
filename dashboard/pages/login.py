@@ -55,7 +55,7 @@ def register_user(first_name: str, last_name: str, email: str, phone: str, usern
     hashed_pw = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
     try:
         ses = boto3.client('ses')
-        response = ses.verify_email_identity(
+        ses.verify_email_identity(
             EmailAddress=email
         )
         with get_conn() as conn:
@@ -67,8 +67,9 @@ def register_user(first_name: str, last_name: str, email: str, phone: str, usern
                 """, (first_name, last_name, email, phone, username, hashed_pw))
         return True
     except botocore.exceptions.ClientError as e:
-        logging.error("Error verifying email: %s, Response: %s",
-                      str(e), response)
+        logging.error("Error verifying email: %s",
+                      str(e))
+        return False
     except psycopg2.errors.UniqueViolation:
         return False
     except Exception as e:
@@ -128,7 +129,7 @@ if __name__ == "__main__":
                         "User registered successfully. You can now log in.")
                 else:
                     st.error(
-                        "Username or email already exists, or an error occurred.")
+                        "An error occurred, please try again.")
 
     elif auth_mode == "Login":
         inputted_username = st.text_input("Username")
