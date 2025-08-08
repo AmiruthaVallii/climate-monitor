@@ -628,7 +628,7 @@ resource "aws_iam_role" "email_lambda" {
 }
 
 resource "aws_iam_role_policy" "ses" {
-  name = "invoke-other-lambdas"
+  name = "invoke-ses"
   role = aws_iam_role.email_lambda.id
 
   policy = jsonencode({
