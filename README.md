@@ -67,13 +67,16 @@ The pipelines, database and dashboard are now operational.
 
 ### Documentation
 
-The erd.png shows the schema layout for the database which is in 3NF and is followed in the schema.sql file.
+#### ERD
+
+The `erd.png` shows the schema layout for the database which is in 3NF and is followed in the schema.sql file.
 ![erd](<documentation/erd.png> "erd")
 
-The architecture-diagram.png displays the architecture for our system. It includes an RDS which ingests data
+#### System Architecture
+
+The `architecture-diagram.png` displays the architecture for our system. It includes an RDS which ingests data
 from numerous API's via an array of Lambdas, some of which are run on eventbridge schedules. There is also
-an eventbridge schedule which runs a lambda which triggers an SES service. The dashboard is hosted on AWS Fargate
-service.
+an eventbridge schedule which runs a lambda which triggers an SES service. The dashboard is hosted on AWS Fargate service.
 ![architecture diagram](<documentation/architecture-diagram.png> "architecture diagram")
 
 ### Scripts
@@ -144,3 +147,9 @@ A python script which creates a streamlit login page to allow users to login or 
 
 ## `dashboard/pages/profile.py`
 A python script which creates a streamlit page that can only be accessed after login. It allows users to add new locations to be tracked by the dashboard and change notification preferences.
+
+## `notifications/notification.py`
+A python script that defines an AWS Lambda function that monitors recent weather, flood, and air quality data stored in an RDS database, detects conditions exceeding predefined safety thresholds, and sends targeted alert emails to subscribed users via Amazon SES. It retrieves unsent flood warnings, recent weather and AQI readings, evaluates them against risk thresholds, and formats alerts into styled HTML emails for immediate distribution.
+
+## `daily-summary/summary.py`
+A python script that defines an AWS Lambda function that retrieves the past 24 hour weather and air quality data from the RDS database, formats it into text and HTML reports, and sends daily summary emails to subscribed users via Amazon SES.
