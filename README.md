@@ -88,7 +88,7 @@ A file to create the schema for the database
 ## db/seed.sql
 A file to seed the database with initial flood severity and locations.
 ##  db/seed_flood_areas.py
-A file which makes a get request to a government api that lists all the English designated flood area codes.
+A file which makes a get request to a government API that lists all the English designated flood area codes.
 We collect all of them and insert them into our flood_areas table in our database.
 ##  db/seed_flood_area_assignment.py
 A file which loads all locations from the rds and then makes a get request to a government api which returns the flood area codes for a given location (lat,lon). It finds the flood area_codes for every location and then matches these with flood_area_code_ids. It then inserts these assignments into the flood_area_assignment table.
