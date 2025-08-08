@@ -7,17 +7,17 @@ A dashboard to monitor weather, air quality and flood trends, with a notificatio
 ## Description
 
 
-The Streamlit dashboard utilises data from a Postgres RDS, to display graphs and metrics on weather (temperature, rainfall and wind), air quality and floods. It combines real time, historical and future predictions data to compare how weather has changed and will change. It does this as the local level, allowing users to select specific cities to view how the climate is changing in that location.
+The Streamlit dashboard utilises data from a Postgres RDS, to display graphs and metrics on weather (temperature, rainfall and wind), air quality and floods. It combines real time, historical and future predictions data to compare how weather has changed and will change. It does this at a local level, allowing users to select specific cities to view how the climate is changing in that location.
 
 
-The RDS schema is in 3NF, and the lambda is supplied with data from a variety of ETL's runs on Lambda functions which collect data from an array of endpoints.
+The RDS schema is in 3NF, and the lambda is supplied with data from a variety of ETLs runs on Lambda functions which collect data from an array of endpoints.
 
 
 ## Getting Started
 ### Prerequisites
 Install docker locally
 Install PostgreSQL command-line client (psql)
-
+Install Python 3.13.5
 
 ### Installing
 
@@ -48,7 +48,7 @@ python3 upload_historic_floods.py
 
 
 To get historic, future weather and air quality data for the seeded locations and also assign them flood areas,
-go into the insert-new-location folder (and install requirements) and run:
+change the directory into the db/insert-new-location folder (and install requirements) and run:
 ```
 python3 main.py
 ```
@@ -71,15 +71,17 @@ Check that you can access it on it's URL.
 The pipelines, database and dashboard are now operational.
 ### Documentation
 Our documentation folder includes diagrams displaying design decisions as well as our decided company logo.
-
+![logo](<documentation/eco-intel-logo.png> "logo")
 
 The erd.png shows the schema layout for the database which is in 3NF and is followed in the schema.sql file.
-
+![erd](<documentation/erd.png> "erd")
 
 The architecture-diagram.png displays the architecture for our system. It includes an RDS which ingests data
 from numerous API's via an array of Lambdas, some of which are run on eventbridge schedules. There is also
 an eventbridge schedule which runs a lambda which triggers an SES service. The dashboard is hosted on AWS Fargate
 service.
+![architecture diagram](<documentation/architecture-diagram.png> "architecture diagram")
+
 ### Files explained
 
 
@@ -105,7 +107,7 @@ A file which creates a lambda handler which performs a get request for historica
 ## extract-present/extract.py
 A file which creates a lambda handler which performs a get request for current weather data, for a given location, to an OpenMeteo api. It then inserts this data into the databases's weather_readings table.
 ## extract-present/orchestrator/orchestrator_lambda.py
-A file which creates a lambda handler which invokes the current air quality and current weather data lambda functions for every location present in the rds. This lambda is the core part of the etl which ensures the dashboard has the latest climate and air quality data
+A file which creates a lambda handler which invokes the current air quality and current weather data lambda functions for every location present in the rds. This lambda is the core part of the ETL which ensures the dashboard has the latest climate and air quality data
 ## extract-present-air-quality/extract.py
 A file which creates a lambda handler which performs a get request for current air quality data, for a given location, to an OpenWeather api. It then inserts this data into the databases's air_quality_readings table.
 ## live-flood-monitoring-etl/fetch_live_flood_warnings.py
