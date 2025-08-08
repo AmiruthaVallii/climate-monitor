@@ -611,6 +611,46 @@ resource "aws_lambda_function" "new_location_orchestrator" {
   ]
 }
 
+resource "aws_cloudwatch_log_group" "notifications" {
+  name              = "/aws/lambda/${var.notifications_lambda_name}"
+  retention_in_days = 7
+
+  tags = {
+    Environment = "production"
+    Function    = var.notifications_lambda_name
+  }
+}
+
+resource "aws_lambda_function" "notifications" {
+  function_name = var.notifications_lambda_name
+  role          = aws_iam_role.lambda.arn
+  package_type  = "Image"
+  image_uri     = "${aws_ecr_repository.notifications.repository_url}:latest"
+  memory_size   = 256
+  timeout       = 60
+  architectures = ["x86_64"]
+
+  environment {
+    variables = {
+      DB_HOST     = aws_db_instance.climate.address
+      DB_PORT     = 5432
+      DB_USERNAME = "climate"
+      DB_PASSWORD = var.db_password
+      DB_NAME     = "postgres"
+    }
+  }
+
+  logging_config {
+    log_format            = "JSON"
+    application_log_level = "INFO"
+    system_log_level      = "INFO"
+  }
+
+  depends_on = [
+    aws_iam_role_policy_attachment.lambda_basic_exec_role,
+    aws_cloudwatch_log_group.notifications
+  ]
+}
 
 
 resource "aws_iam_role" "lambda_scheduler" {
