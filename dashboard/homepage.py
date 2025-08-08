@@ -71,5 +71,5 @@ if __name__ == "__main__":
         - Alerts
           - Be notified via email whenever there are any flood alerts, if air quality index has reached 4/5 or greater, or if any weather values reached a certain threshold
         - Daily Summary
-          - Receive an email at the end of each day which summarises all of the data from that day
+          - Receive an email at the end of each day at 6pm which summarises all of the data from that day
         """)
