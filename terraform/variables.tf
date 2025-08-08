@@ -46,6 +46,11 @@ variable "new_location_orchestrator_lambda_name" {
   default = "c18-climate-monitor-new-location-orchestrator-lambda"
 }
 
+variable "notifications_lambda_name" {
+  type    = string
+  default = "c18-climate-monitor-notifications-lambda"
+}
+
 variable "my_aws_access_key_id" {
   type      = string
   sensitive = true
