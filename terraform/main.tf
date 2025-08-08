@@ -157,6 +157,15 @@ resource "aws_ecr_repository" "daily_summary" {
   }
 }
 
+resource "aws_ecr_repository" "notifications" {
+  name                 = "c18-climate-monitor-notifications-ecr"
+  image_tag_mutability = "MUTABLE"
+
+  image_scanning_configuration {
+    scan_on_push = true
+  }
+}
+
 resource "aws_ecr_repository" "dashboard" {
   name                 = "c18-climate-monitor-dashboard-ecr"
   image_tag_mutability = "MUTABLE"
