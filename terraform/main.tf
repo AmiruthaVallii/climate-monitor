@@ -787,7 +787,10 @@ resource "aws_iam_role_policy" "ses_verify" {
     "Statement" : [
       {
         "Effect" : "Allow",
-        "Action" : "ses:VerifyEmailIdentity",
+        "Action" : [
+          "ses:VerifyEmailIdentity",
+          "lambda:InvokeFunction",
+          ]
         "Resource" : ["*"]
       }
     ]
