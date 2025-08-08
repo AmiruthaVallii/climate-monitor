@@ -83,7 +83,7 @@ service.
 ### Files explained
 
 
-## db/schema.sql
+## `db/schema.sql`
 A file to create the schema for the database
 ## db/seed.sql
 A file to seed the database with initial flood severity and locations.
