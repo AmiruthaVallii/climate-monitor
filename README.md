@@ -2,7 +2,7 @@
 
 Eco Intel is a centralised dashboard that unifies weather, air quality and flood data (current, past, future). It also provides a notification system to alert users of flood and weather warnings.
 
-![logo](<documentation/eco-intel-logo.png> "logo")
+![logo](<documentation/eco-intel-logo.png> "logo" | width=200)
 
 ## Description
 
