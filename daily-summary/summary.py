@@ -1,5 +1,6 @@
 """Lambda function for sending daily summary emails."""
 import os
+from time import sleep
 from typing import Any
 import logging
 import psycopg2
@@ -11,6 +12,7 @@ from botocore.exceptions import ClientError
 AWS_REGION = "eu-west-2"
 CHARSET = "UTF-8"
 SENDER = "ecointel.alerts@gmail.com"
+EMAIL_TIME_DELAY = 1  # Can only send 1 email per second.
 load_dotenv()
 
 logging.basicConfig(
@@ -54,6 +56,9 @@ def get_weather_summary(location_ids: tuple[int]) -> dict[int, dict]:
         for location in data:
             summary_stats[location["location_id"]] = location
         return summary_stats
+    except Exception as e:
+        logging.error("Error: %s", str(e))
+        raise e
     finally:
         conn.close()
 
@@ -83,6 +88,9 @@ def get_air_quality_summary(location_ids: tuple[int]) -> dict[int, dict]:
         for location in data:
             summary_stats[location["location_id"]] = location
         return summary_stats
+    except Exception as e:
+        logging.error("Error: %s", str(e))
+        raise e
     finally:
         conn.close()
 
@@ -102,6 +110,9 @@ def get_mailing_lists() -> dict[int, list[str]]:
         for location in data:
             mailing_lists[location["location_id"]] = location["emails"]
         return mailing_lists
+    except Exception as e:
+        logging.error("Error: %s", str(e))
+        raise e
     finally:
         conn.close()
 
@@ -117,7 +128,7 @@ def make_email_text(weather_data: dict) -> str:
     return message
 
 
-def get_band(concentration: float, pollutant: str, text: bool) -> str:
+def get_severity_band(concentration: float, pollutant: str, text: bool) -> str:
     """Get colour or text band for pollutant level."""
     if text:
         low = "Low"
@@ -218,32 +229,32 @@ def get_email_html(weather: dict, air_quality: dict) -> str:
             <tr>
                 <td>O₃</td>
                 <td align="right">{air_quality["ozone"]:.1f} µg/m³</td>
-                <td align="right" style="color:{get_band(air_quality["ozone"], "ozone", False)};">
-                {get_band(air_quality["ozone"], "ozone", True)}</td>
+                <td align="right" style="color:{get_severity_band(air_quality["ozone"], "ozone", False)};">
+                {get_severity_band(air_quality["ozone"], "ozone", True)}</td>
             </tr>
             <tr>
                 <td>NO₂</td>
                 <td align="right">{air_quality["nitrogen_dioxide"]:.1f} µg/m³</td>
-                <td align="right" style="color:{get_band(air_quality["nitrogen_dioxide"], "nitrogen_dioxide", False)};">
-                {get_band(air_quality["nitrogen_dioxide"], "nitrogen_dioxide", True)}</td>
+                <td align="right" style="color:{get_severity_band(air_quality["nitrogen_dioxide"], "nitrogen_dioxide", False)};">
+                {get_severity_band(air_quality["nitrogen_dioxide"], "nitrogen_dioxide", True)}</td>
             </tr>
             <tr>
                 <td>SO₂</td>
                 <td align="right">{air_quality["sulphur_dioxide"]:.1f} µg/m³</td>
-                <td align="right" style="color:{get_band(air_quality["sulphur_dioxide"], "sulphur_dioxide", False)};">
-                {get_band(air_quality["sulphur_dioxide"], "sulphur_dioxide", True)}</td>
+                <td align="right" style="color:{get_severity_band(air_quality["sulphur_dioxide"], "sulphur_dioxide", False)};">
+                {get_severity_band(air_quality["sulphur_dioxide"], "sulphur_dioxide", True)}</td>
             </tr>
             <tr>
                 <td>PM2.5</td>
                 <td align="right">{air_quality["pm2_5"]:.1f} µg/m³</td>
-                <td align="right" style="color:{get_band(air_quality["pm2_5"], "pm2_5", False)};">
-                {get_band(air_quality["pm2_5"], "pm2_5", True)}</td>
+                <td align="right" style="color:{get_severity_band(air_quality["pm2_5"], "pm2_5", False)};">
+                {get_severity_band(air_quality["pm2_5"], "pm2_5", True)}</td>
             </tr>
             <tr>
                 <td>PM10</td>
                 <td align="right">{air_quality["pm10"]:.1f} µg/m³</td>
-                <td align="right" style="color:{get_band(air_quality["pm10"], "pm10", False)};">
-                {get_band(air_quality["pm10"], "pm10", True)}</td>
+                <td align="right" style="color:{get_severity_band(air_quality["pm10"], "pm10", False)};">
+                {get_severity_band(air_quality["pm10"], "pm10", True)}</td>
             </tr>
             </table>
         </td>
@@ -285,6 +296,7 @@ def send_email(addresses: list[str], subject: str, text: str, html: str, ses) ->
             logging.error(e.response['Error']['Message'])
         else:
             logging.info("Email sent! Message ID: %s", response['MessageId'])
+            sleep(EMAIL_TIME_DELAY)
 
 
 def handler(event: dict, context: Any) -> None:  # pylint: disable=unused-argument
