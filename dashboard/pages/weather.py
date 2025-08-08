@@ -47,7 +47,7 @@ def load_past_weather(location_id):
     conn = get_connection()
     cur = conn.cursor()
     try:
-        query = "select * from historical_weather_readings WHERE location_id = %s"
+        query = "select * from historical_weather_readings WHERE location_id = %s AND (EXTRACT(YEAR FROM timestamp) BETWEEN 1940 AND 1960 OR EXTRACT(YEAR FROM timestamp) = EXTRACT(YEAR FROM CURRENT_DATE));"
         parameter = (location_id,)
         cur.execute(query, parameter)
         rows = cur.fetchall()
@@ -65,7 +65,7 @@ def load_future_weather(location_id):
     conn = get_connection()
     cur = conn.cursor()
     try:
-        query = "select * from future_weather_prediction WHERE location_id = %s"
+        query = "select * from future_weather_prediction WHERE location_id = %s AND EXTRACT(YEAR FROM date)=2045"
         parameter = (location_id,)
 
         cur.execute(query, parameter)
@@ -98,16 +98,9 @@ def load_locations():
 def prepare_temperature_data(selected_location_id):
     """Prepare temperature data for visualization"""
 
-    recent_df = load_recent_weather(selected_location_id)
-    historical_df = load_past_weather(selected_location_id)
-    future_df = load_future_weather(selected_location_id)
-
-    recent_filtered = recent_df[recent_df['location_id']
-                                == selected_location_id].copy()
-    historical_filtered = historical_df[historical_df['location_id']
-                                        == selected_location_id].copy()
-    future_filtered = future_df[future_df['location_id']
-                                == selected_location_id].copy()
+    recent_filtered = load_recent_weather(selected_location_id)
+    historical_filtered = load_past_weather(selected_location_id)
+    future_filtered = load_future_weather(selected_location_id)
 
     if not recent_filtered.empty:
         recent_filtered['timestamp'] = pd.to_datetime(
@@ -181,16 +174,9 @@ def prepare_temperature_data(selected_location_id):
 def prepare_rainfall_data(selected_location_id):
     """Prepare rainfall data for visualization"""
 
-    recent_df = load_recent_weather(selected_location_id)
-    historical_df = load_past_weather(selected_location_id)
-    future_df = load_future_weather(selected_location_id)
-
-    recent_filtered = recent_df[recent_df['location_id']
-                                == selected_location_id].copy()
-    historical_filtered = historical_df[historical_df['location_id']
-                                        == selected_location_id].copy()
-    future_filtered = future_df[future_df['location_id']
-                                == selected_location_id].copy()
+    recent_filtered = load_recent_weather(selected_location_id)
+    historical_filtered = load_past_weather(selected_location_id)
+    future_filtered = load_future_weather(selected_location_id)
 
     if not recent_filtered.empty:
         recent_filtered['timestamp'] = pd.to_datetime(
@@ -267,16 +253,9 @@ def prepare_rainfall_data(selected_location_id):
 def prepare_wind_speed_data(selected_location_id):
     """Prepare wind speed data for visualization"""
 
-    recent_df = load_recent_weather(selected_location_id)
-    historical_df = load_past_weather(selected_location_id)
-    future_df = load_future_weather(selected_location_id)
-
-    recent_filtered = recent_df[recent_df['location_id']
-                                == selected_location_id].copy()
-    historical_filtered = historical_df[historical_df['location_id']
-                                        == selected_location_id].copy()
-    future_filtered = future_df[future_df['location_id']
-                                == selected_location_id].copy()
+    recent_filtered = load_recent_weather(selected_location_id)
+    historical_filtered = load_past_weather(selected_location_id)
+    future_filtered = load_future_weather(selected_location_id)
 
     if not recent_filtered.empty:
         recent_filtered['timestamp'] = pd.to_datetime(
