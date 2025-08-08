@@ -778,7 +778,7 @@ resource "aws_iam_role" "ecs_task_execution_role" {
   })
 }
 
-resource "aws_iam_role_policy" "ses" {
+resource "aws_iam_role_policy" "ses_verify" {
   name = "invoke-send-verify-email"
   role = aws_iam_role.ecs_task_execution_role.id
 
