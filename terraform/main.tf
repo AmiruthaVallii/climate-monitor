@@ -916,7 +916,7 @@ resource "aws_scheduler_schedule" "notifications_scheduler" {
     mode = "OFF"
   }
 
-  schedule_expression          = "cron(*/15 * * * ? *)"
+  schedule_expression          = "cron(1/15 * * * ? *)"
   schedule_expression_timezone = "Europe/London"
 
   target {
