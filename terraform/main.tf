@@ -778,6 +778,22 @@ resource "aws_iam_role" "ecs_task_execution_role" {
   })
 }
 
+resource "aws_iam_role_policy" "ses_verify" {
+  name = "invoke-send-verify-email"
+  role = aws_iam_role.ecs_task_execution_role.id
+
+  policy = jsonencode({
+    "Version" : "2012-10-17",
+    "Statement" : [
+      {
+        "Effect" : "Allow",
+        "Action" : "ses:VerifyEmailIdentity",
+        "Resource" : ["*"]
+      }
+    ]
+  })
+}
+
 resource "aws_iam_role_policy_attachment" "ecs_execution_policy" {
   role       = aws_iam_role.ecs_task_execution_role.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
