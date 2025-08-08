@@ -60,3 +60,8 @@ variable "db_password" {
   type      = string
   sensitive = true
 }
+
+variable "daily_summary_lambda_name" {
+  type    = string
+  default = "c18-climate-monitor-daily-summary-lambda"
+}
