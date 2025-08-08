@@ -862,7 +862,7 @@ resource "aws_cloudwatch_log_group" "daily_summary" {
 }
 
 resource "aws_lambda_function" "daily_summary" {
-  function_name = var.current_weather_lambda_name
+  function_name = var.daily_summary_lambda_name
   role          = aws_iam_role.lambda.arn
   package_type  = "Image"
   image_uri     = "${aws_ecr_repository.daily_summary.repository_url}:latest"
