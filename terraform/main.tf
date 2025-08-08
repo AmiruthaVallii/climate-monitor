@@ -777,16 +777,16 @@ resource "aws_ecs_task_definition" "streamlit_dashboard" {
         { name = "DB_NAME", value = "postgres" },
         { name = "DB_USERNAME", value = "climate" },
         { name = "DB_PASSWORD", value = var.db_password },
-        { name = "DB_PORT", value = "5432"}
+        { name = "DB_PORT", value = "5432" }
       ],
       logConfiguration = {
-      logDriver = "awslogs",
-      options = {
-        awslogs-group         = "/ecs/c18-climate-monitor-dashboard"
-        awslogs-region        = "eu-west-2"
-        awslogs-stream-prefix = "c18-climate-monitor"
+        logDriver = "awslogs",
+        options = {
+          awslogs-group         = "/ecs/c18-climate-monitor-dashboard"
+          awslogs-region        = "eu-west-2"
+          awslogs-stream-prefix = "c18-climate-monitor"
+        }
       }
-    }
     }
   ])
 }
@@ -801,12 +801,53 @@ resource "aws_ecs_service" "streamlit_service" {
   desired_count   = 1
 
   network_configuration {
-    subnets         = ["subnet-0679d4b1f9e7839ef", "subnet-0f10662561eade8c3", "subnet-0aed07ac008a10da9"]
-    security_groups = [aws_security_group.streamlit_sg.id]
+    subnets          = ["subnet-0679d4b1f9e7839ef", "subnet-0f10662561eade8c3", "subnet-0aed07ac008a10da9"]
+    security_groups  = [aws_security_group.streamlit_sg.id]
     assign_public_ip = true
   }
 
   depends_on = [
     aws_iam_role_policy_attachment.ecs_execution_policy
+  ]
+}
+
+resource "aws_cloudwatch_log_group" "daily_summary" {
+  name              = "/aws/lambda/${var.daily_summary_lambda_name}"
+  retention_in_days = 7
+
+  tags = {
+    Environment = "production"
+    Function    = var.daily_summary_lambda_name
+  }
+}
+
+resource "aws_lambda_function" "daily_summary" {
+  function_name = var.current_weather_lambda_name
+  role          = aws_iam_role.lambda.arn
+  package_type  = "Image"
+  image_uri     = "${aws_ecr_repository.daily_summary.repository_url}:latest"
+  memory_size   = 256
+  timeout       = 60
+  architectures = ["x86_64"]
+
+  environment {
+    variables = {
+      DB_HOST     = aws_db_instance.climate.address
+      DB_PORT     = 5432
+      DB_USER     = "climate"
+      DB_PASSWORD = var.db_password
+      DB_NAME     = "postgres"
+    }
+  }
+
+  logging_config {
+    log_format            = "JSON"
+    application_log_level = "INFO"
+    system_log_level      = "INFO"
+  }
+
+  depends_on = [
+    aws_iam_role_policy_attachment.lambda_basic_exec_role,
+    aws_cloudwatch_log_group.daily_summary
   ]
 }
