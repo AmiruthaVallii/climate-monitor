@@ -28,7 +28,7 @@ def get_connection() -> psycopg2.extensions.connection:
     """Get connection to RDS."""
     return psycopg2.connect(
         host=os.getenv("DB_HOST"),
-        user=os.getenv("DB_USER"),
+        user=os.getenv("DB_USERNAME"),
         password=os.getenv("DB_PASSWORD"),
         dbname=os.getenv("DB_NAME"),
         port=os.getenv("DB_PORT")
@@ -59,8 +59,9 @@ def get_unsent_flood_warnings() -> pd.DataFrame:
             AND fw.notifications_sent = FALSE;
             """
         return pd.read_sql_query(query, conn)
-    except:
-        raise RuntimeError("Unable to connect to RDS")
+    except Exception as err:
+        logging.error(str(err))
+        raise
 
 
 def get_weather_readings() -> pd.DataFrame:

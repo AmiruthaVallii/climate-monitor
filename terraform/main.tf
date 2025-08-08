@@ -763,7 +763,6 @@ resource "aws_scheduler_schedule" "current_reading_orchestrator_scheduler" {
 
 
 # ECS Task Execution Role
-/*
 resource "aws_iam_role" "ecs_task_execution_role" {
   name = "c18-climate-monitor-ecsTaskExecutionRole"
 
@@ -843,7 +842,7 @@ resource "aws_ecs_task_definition" "streamlit_dashboard" {
   container_definitions = jsonencode([
     {
       name      = "streamlit"
-      image     = "129033205317.dkr.ecr.eu-west-2.amazonaws.com/c18-climate-monitor-dashboard-ecr:latest"
+      image     = "129033205317.dkr.ecr.eu-west-2.amazonaws.com/c18-climate-monitor-dashboard-ecr:final"
       essential = true
       portMappings = [
         {
@@ -890,7 +889,7 @@ resource "aws_ecs_service" "streamlit_service" {
     aws_iam_role_policy_attachment.ecs_execution_policy
   ]
 }
-*/
+
 resource "aws_cloudwatch_log_group" "daily_summary" {
   name              = "/aws/lambda/${var.daily_summary_lambda_name}"
   retention_in_days = 7
