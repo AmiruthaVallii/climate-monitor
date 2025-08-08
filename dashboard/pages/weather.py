@@ -95,7 +95,7 @@ def load_locations():
         return locations_df
 
 
-def prepare_temperature_data(selected_location_id):
+def prepare_temperature_data(selected_location_id: int) -> pd.DataFrame:
     """Prepare temperature data for visualization"""
 
     recent_filtered = load_recent_weather(selected_location_id)
@@ -171,7 +171,7 @@ def prepare_temperature_data(selected_location_id):
         return pd.DataFrame()
 
 
-def prepare_rainfall_data(selected_location_id):
+def prepare_rainfall_data(selected_location_id: int) -> pd.DataFrame:
     """Prepare rainfall data for visualization"""
 
     recent_filtered = load_recent_weather(selected_location_id)
@@ -250,7 +250,7 @@ def prepare_rainfall_data(selected_location_id):
     return pd.DataFrame()
 
 
-def prepare_wind_speed_data(selected_location_id):
+def prepare_wind_speed_data(selected_location_id: int) -> pd.DataFrame:
     """Prepare wind speed data for visualization"""
 
     recent_filtered = load_recent_weather(selected_location_id)
@@ -326,7 +326,7 @@ def prepare_wind_speed_data(selected_location_id):
     return pd.DataFrame()
 
 
-def create_chart(data, title, y_axis_title, color_scheme="category10"):
+def create_chart(data: pd.DataFrame, title: str, y_axis_title: str, color_scheme: str = "category10"):
     """Create an Altair line chart"""
     if data.empty:
         return alt.Chart().mark_text(
