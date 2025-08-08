@@ -47,7 +47,9 @@ def load_past_weather(location_id):
     conn = get_connection()
     cur = conn.cursor()
     try:
-        query = "select * from historical_weather_readings WHERE location_id = %s AND (EXTRACT(YEAR FROM timestamp) BETWEEN 1940 AND 1960 OR EXTRACT(YEAR FROM timestamp) = EXTRACT(YEAR FROM CURRENT_DATE));"
+        query = """select * from historical_weather_readings WHERE location_id = %s
+        AND (EXTRACT(YEAR FROM timestamp) BETWEEN 1940 AND 1960 
+        OR EXTRACT(YEAR FROM timestamp) = EXTRACT(YEAR FROM CURRENT_DATE));"""
         parameter = (location_id,)
         cur.execute(query, parameter)
         rows = cur.fetchall()
@@ -393,7 +395,8 @@ def main():
     st.header(f"Weather Data for {selected_location_name}:")
 
     st.markdown(
-        "Compare current year weather with historical baseline (1940-1960) and future predictions (2045)")
+        "Compare current year weather with historical "
+        "baseline (1940-1960) and future predictions (2045)")
 
     current_day = dt.date.today().timetuple().tm_yday
     current_year = dt.date.today().year
