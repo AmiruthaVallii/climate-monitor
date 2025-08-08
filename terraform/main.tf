@@ -851,3 +851,19 @@ resource "aws_lambda_function" "daily_summary" {
     aws_cloudwatch_log_group.daily_summary
   ]
 }
+
+resource "aws_scheduler_schedule" "daily_summary_scheduler" {
+  name = "c18-climate-monitor-daily-summary-scheduler"
+
+  flexible_time_window {
+    mode = "OFF"
+  }
+
+  schedule_expression          = "cron(0 18 * * ? *)"
+  schedule_expression_timezone = "Europe/London"
+
+  target {
+    arn      = aws_lambda_function.daily_summary.arn
+    role_arn = aws_iam_role.lambda_scheduler.arn
+  }
+}
