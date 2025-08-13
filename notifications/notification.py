@@ -358,7 +358,7 @@ def send_weather_notifications(weather_alerts: list, aqi_alerts: list) -> None:
                     },
                     'Subject': {
                         'Charset': 'UTF-8',
-                        'Data': f'FLOOD WARNING IN {alert[2].upper()}',
+                        'Data': f'WEATHER WARNING IN {alert[2].upper()}',
                     },
                 },
                 Source='ecointel.alerts@gmail.com',
