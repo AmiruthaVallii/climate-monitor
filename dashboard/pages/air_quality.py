@@ -121,41 +121,44 @@ def locations_sidebar(locations_df: pd.DataFrame) -> tuple[int, str]:
 def live_data_metrics(df: pd.DataFrame):
     """Display the most recent air quality metrics on the dashboard"""
     st.header("Latest Air Quality Metrics (μg/m\u2083)")
-    last = df.iloc[-1]
-    second_last = df.iloc[READINGS_IN_A_DAY]
+    today_reading = df.iloc[-1]
+    yesterday_reading = df.iloc[READINGS_IN_A_DAY]
 
     col1, col2, col3, col4, col5 = st.columns(5)
-    col1.metric("Air Quality Index", last["air_quality_index"],
-                int(second_last["air_quality_index"] -
-                    last["air_quality_index"]), border=True, delta_color="inverse")
-    col2.metric("Carbon Monoxide - CO", last["carbon_monoxide"],
-                round(float(second_last["carbon_monoxide"] -
-                      last["carbon_monoxide"]), 2),
+    col1.metric("Air Quality Index", today_reading["air_quality_index"],
+                int(today_reading["air_quality_index"] -
+                    yesterday_reading["air_quality_index"]), border=True, delta_color="inverse")
+    col2.metric("Carbon Monoxide - CO", today_reading["carbon_monoxide"],
+                round(float(today_reading["carbon_monoxide"] -
+                      yesterday_reading["carbon_monoxide"]), 2),
                 border=True, delta_color="inverse")
-    col3.metric("Nitrogen Monoxide - NO", last["nitrogen_monoxide"],
-                round(float(second_last["nitrogen_monoxide"] -
-                      last["nitrogen_monoxide"]), 2),
+    col3.metric("Nitrogen Monoxide - NO", today_reading["nitrogen_monoxide"],
+                round(float(today_reading["nitrogen_monoxide"] -
+                      yesterday_reading["nitrogen_monoxide"]), 2),
                 border=True, delta_color="inverse")
-    col4.metric("Nitrogen Dioxide - NO\u2082", last["nitrogen_dioxide"],
-                round(float(second_last["nitrogen_dioxide"] -
-                      last["nitrogen_dioxide"]), 2),
+    col4.metric("Nitrogen Dioxide - NO\u2082", today_reading["nitrogen_dioxide"],
+                round(float(today_reading["nitrogen_dioxide"] -
+                      yesterday_reading["nitrogen_dioxide"]), 2),
                 border=True, delta_color="inverse")
-    col5.metric("Ammonia - NH\u2083", last["ammonia"],
-                round(float(second_last["ammonia"] -
-                      last["ammonia"]), 2),
+    col5.metric("Ammonia - NH\u2083", today_reading["ammonia"],
+                round(float(today_reading["ammonia"] -
+                      yesterday_reading["ammonia"]), 2),
                 border=True, delta_color="inverse")
-    col2.metric("Ozone - O\u2083", last["ozone"],
-                round(float(second_last["ozone"] - last["ozone"]), 2),
+    col2.metric("Ozone - O\u2083", today_reading["ozone"],
+                round(float(today_reading["ozone"] -
+                      yesterday_reading["ozone"]), 2),
                 border=True, delta_color="inverse")
-    col3.metric("Sulphur Dioxide - SO\u2082", last["sulphur_dioxide"],
-                round(float(second_last["sulphur_dioxide"] -
-                      last["sulphur_dioxide"]), 2),
+    col3.metric("Sulphur Dioxide - SO\u2082", today_reading["sulphur_dioxide"],
+                round(float(today_reading["sulphur_dioxide"] -
+                      yesterday_reading["sulphur_dioxide"]), 2),
                 border=True, delta_color="inverse")
-    col4.metric("Fine Particulates - PM\u2082.\u2085", last["pm2_5"],
-                round(float(second_last["pm2_5"] - last["pm2_5"]), 2),
+    col4.metric("Fine Particulates - PM\u2082.\u2085", today_reading["pm2_5"],
+                round(float(today_reading["pm2_5"] -
+                      yesterday_reading["pm2_5"]), 2),
                 border=True, delta_color="inverse")
-    col5.metric("Coarse Particulates - PM\u2081\u2080", last["pm10"],
-                round(float(second_last["pm10"] - last["pm10"]), 2),
+    col5.metric("Coarse Particulates - PM\u2081\u2080", today_reading["pm10"],
+                round(float(today_reading["pm10"] -
+                      yesterday_reading["pm10"]), 2),
                 border=True, delta_color="inverse")
 
 
@@ -264,12 +267,12 @@ def all_time_readings_line_graph(df: pd.DataFrame) -> None:
     st.altair_chart(
         alt.Chart(long_df).mark_line(point=True).encode(
             x=alt.X("timestamp:T", title="Date"),
-            y=alt.Y("value:Q", title="Mean Value per Day (μg/m\u2083)"),
+            y=alt.Y("value:Q", title="Mean Value in Time Period (μg/m\u2083)"),
             color=alt.Color("pollutant:N", title="Pollutant"),
             tooltip=[
                 alt.Tooltip("timestamp:T", title="Date"),
                 alt.Tooltip(
-                    "value:Q", title="Mean Value per Day (μg/m\u2083)"),
+                    "value:Q", title="Mean Value in Time Period (μg/m\u2083)"),
                 alt.Tooltip("pollutant:N", title="Pollutant")
             ]
         ).properties(
