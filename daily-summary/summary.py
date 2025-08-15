@@ -205,7 +205,7 @@ def get_email_html(weather: dict, air_quality: dict) -> str:
             <tr>
                 <td style="border-bottom:1px solid #ddd;">🌧️ Rainfall:</td>
                 <td align="right" style="border-bottom:1px solid #ddd;">
-                {weather["total_rainfall"]:.1f} km/h</td>
+                {weather["total_rainfall"]:.1f} mm</td>
             </tr>
             <tr>
                 <td style="border-bottom:1px solid #ddd;">❄️ Snowfall:</td>
