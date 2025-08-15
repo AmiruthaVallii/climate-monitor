@@ -622,7 +622,6 @@ def main():
     st.markdown(
         "Compare selected period weather data with historical "
         "baseline (1940-1960) and future predictions (2045). "
-        "The baseline and future predictions repeat for each year in your selected range."
     )
 
     st.subheader("🌡️ Temperature Comparison")
